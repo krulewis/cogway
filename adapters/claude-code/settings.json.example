@@ -1,0 +1,29 @@
+{
+  "//": "Illustrative starting point only — not a real configuration. Copy into",
+  "//_2": "your own .claude/settings.json and adapt paths/scripts to your project.",
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "//": "Example: block direct `rm` and require a safe-delete wrapper instead.",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$CLAUDE_TOOL_INPUT\" in *'rm -'*|*'rm '*) echo 'Direct rm is blocked in this project. Use scripts/safe-delete.sh instead.' >&2; exit 2 ;; esac"
+          }
+        ]
+      },
+      {
+        "//": "Example: block commit/push directly on a protected branch.",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "branch=$(git branch --show-current 2>/dev/null); case \"$branch:$CLAUDE_TOOL_INPUT\" in main:*'git commit'*|main:*'git push'*) echo \"Direct commits/pushes to '$branch' are blocked. Work on a feature branch.\" >&2; exit 2 ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

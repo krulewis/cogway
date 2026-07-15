@@ -1,0 +1,9 @@
+{
+  "_comment": "Codex hooks.json — DOCUMENTED-BUT-OFF per architecture R4: experimental as of v0.114 (Mar 2026), off by default in Codex itself, no Windows support. Cogway does not make any lifecycle gate depend on this file. See adapters/codex/README.md before enabling anything below.",
+
+  "_example_pre_tool_use": {
+    "_comment": "Illustrative shape only — every entry here is inert (nested under an underscore-prefixed key Codex will not read as active config). Uncomment and adapt only if you are deliberately experimenting with an unstable, off-by-default Codex feature.",
+    "matcher": "shell",
+    "command": "case \"$TOOL_INPUT\" in *'rm -'*) echo 'Direct rm is blocked in this project.' >&2; exit 1 ;; esac"
+  }
+}
