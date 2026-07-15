@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run route-initiative-test.sh
+        run: bash ops/tests/route-initiative-test.sh
+
+      - name: Run check-deliverable-fields-test.sh
+        run: bash ops/tests/check-deliverable-fields-test.sh
+
+      - name: Run field-map-consistency-test.sh
+        run: bash ops/tests/field-map-consistency-test.sh
+
+      - name: Run schema-migration-test.sh
+        run: bash ops/tests/schema-migration-test.sh
+
+      - name: Run generate-test.sh
+        run: bash ops/tests/generate-test.sh
+
+  agents-md-size-gate:
+    name: agents-md-size-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check AGENTS.md size (must stay under 32768 bytes)
+        run: |
+          size=$(wc -c < AGENTS.md)
+          echo "AGENTS.md size: $size bytes"
+          if [ "$size" -ge 32768 ]; then
+            echo "FAIL: AGENTS.md is $size bytes, which is >= 32768 bytes. Risk: silent truncation by downstream harnesses (architecture R3)."
+            exit 1
+          fi
+          echo "PASS: AGENTS.md is within the 32768 byte limit."
+
+  secret-scan:
+    name: secret-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run secret-scan.sh
+        run: bash scripts/secret-scan.sh .
