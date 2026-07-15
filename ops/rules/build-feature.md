@@ -1,9 +1,3 @@
----
-description: Build:Feature phase composition — 17-task list (largest), spawn order, PR review loop, functional-review-writer, human-asset gate
-globs: ["**/03-feature/**"]
-alwaysApply: false
----
-
 # Build:Feature Phase — loads as: ops/rules/build-feature.md
 # Root index pointer: build-feature → this file
 

@@ -1,9 +1,3 @@
----
-description: Improve phase composition — 8-task list, mini design sprint conditional, file conflict rule, PR review loop, human-asset gate
-globs: ["**/improvement-reports/**"]
-alwaysApply: false
----
-
 # Improve Phase — loads as: ops/rules/improve.md
 # Root index pointer: improve → this file
 

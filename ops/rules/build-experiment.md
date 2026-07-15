@@ -1,9 +1,3 @@
----
-description: Build:Experiment phase composition — 9-task list, spawn order, PR review loop, security-reviewer exit step
-globs: ["**/02-experiment/**"]
-alwaysApply: false
----
-
 # Build:Experiment Phase — loads as: ops/rules/build-experiment.md
 # Root index pointer: build-experiment → this file
 

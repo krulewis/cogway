@@ -51,5 +51,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Run secret-scan-test.sh
+        run: bash scripts/secret-scan-test.sh
+
       - name: Run secret-scan.sh
         run: bash scripts/secret-scan.sh .

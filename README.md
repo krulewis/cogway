@@ -20,7 +20,7 @@ git clone <this-repo> cogway && cd cogway
 
 **1. Run the test suite.** Five scripts cover the router, the deliverable-field
 lint, a cross-file consistency check, the schema migration, and the agent-roster
-generator:
+generator, plus a self-test for the secret scanner:
 
 ```bash
 bash ops/tests/route-initiative-test.sh          # 38 passed, 0 failed
@@ -28,6 +28,7 @@ bash ops/tests/check-deliverable-fields-test.sh  # 12 passed, 0 failed
 bash ops/tests/field-map-consistency-test.sh     # 11 passed, 0 failed
 bash ops/tests/schema-migration-test.sh          # 12 passed, 0 failed
 bash agents/generate.sh && bash ops/tests/generate-test.sh
+bash scripts/secret-scan-test.sh
 ```
 
 **2. Run the demo.** Watch the suite catch an intentionally broken rule:

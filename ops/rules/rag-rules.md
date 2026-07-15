@@ -1,9 +1,3 @@
----
-description: RAG status calculation rules — Green/Yellow/Red criteria for roadmap initiative rows
-globs: []
-alwaysApply: true
----
-
 # RAG Rules — loads as: ops/rules/rag-rules.md
 # Root index pointer: rag-rules → this file
 

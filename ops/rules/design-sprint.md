@@ -1,9 +1,3 @@
----
-description: Design Sprint phase composition — 3-task list, spawn order (ux-designer + visual-designer → design-reviewer), field carry-forward requirement
-globs: ["**/01-design-sprint.md"]
-alwaysApply: false
----
-
 # Design Sprint Phase — loads as: ops/rules/design-sprint.md
 # Root index pointer: design-sprint → this file
 

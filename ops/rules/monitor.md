@@ -1,9 +1,3 @@
----
-description: Monitor phase compositions — technical (daily health check) and product (weekly metrics) task lists
-globs: ["**/signal-reports/**"]
-alwaysApply: false
----
-
 # Monitor Phase — loads as: ops/rules/monitor.md
 # Root index pointer: monitor → this file
 

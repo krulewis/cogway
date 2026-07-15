@@ -21,6 +21,9 @@ base=$(basename "$FILE")
 
 # field() — identical parsing to route-initiative.sh: frontmatter-first (trims
 # inline `# comment` and trailing whitespace), falls back to whole-file bold/plain scan.
+# Lowercases the value before returning, matching route-initiative.sh, so the
+# write-side lint validates against the same case-insensitive-by-write values
+# the router will actually compare against.
 field() {
   local file="$1" key="$2" val=""
   if [ -f "$file" ] && [ "$(head -n1 "$file")" = "---" ]; then
@@ -34,7 +37,7 @@ field() {
       | sed -E "s/^\*\*${key}:\*\*[[:space:]]*|^${key}:[[:space:]]*//; s/[[:space:]]*(#.*)?\$//" \
       | tr -d '\r')
   fi
-  echo "$val"
+  echo "$val" | tr '[:upper:]' '[:lower:]'
 }
 count_lines() { grep -cE "^\*\*${2}:\*\*|^${2}:" "$1" 2>/dev/null; }
 

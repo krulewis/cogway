@@ -1,9 +1,3 @@
----
-description: Discovery phase composition — 4-task list, spawn order (discovery-pm → discovery-researcher + ux-researcher → discovery-reviewer)
-globs: ["**/00-discovery-spec.md"]
-alwaysApply: false
----
-
 # Discovery Phase — loads as: ops/rules/discovery.md
 # Root index pointer: discovery → this file
 

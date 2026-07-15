@@ -1,9 +1,3 @@
----
-description: Orchestrator routing action blocks — dispatch/escalate/update/no-op detail, gate map, roadmap update rules, lifecycle constraints
-globs: []
-alwaysApply: true
----
-
 # Orchestrator Routing — loads as: ops/rules/orchestrator.md
 # Root index pointer: orchestrator → this file
 
@@ -46,7 +40,7 @@ Map TARGET to the Phase Composition Reference:
 - `experiment-analyst` — runs when measurement window closes, not during build
 - `daily-standup-writer`, `weekly-standup-writer`, `billing-tracker`, `invoice-writer`, `meeting-notes-writer`
 
-> Client deliverable dispatch rules: see ~/.claude/rules/client-deliverables.md (loads when orchestrator reads external/client/ files)
+> Client deliverable dispatch rules (`client-deliverables.md`) are host-project-specific and not part of Cogway core — see the host project's own rules directory if one is configured.
 
 ### `update` → edit roadmap.md directly, no agent dispatch
 
@@ -122,15 +116,16 @@ The orchestrator MUST read the initiative file listed in the "Read this file" co
 
 | Phase | Read this file | Scoped rule file loaded |
 |---|---|---|
-| discovery | `{initiative-folder}/00-discovery-spec.md` | `~/.claude/rules/discovery.md` |
-| design-sprint | `{initiative-folder}/01-design-sprint.md` | `~/.claude/rules/design-sprint.md` |
-| build-mvp | any file inside `{initiative-folder}/02-mvp-experiment/` | `~/.claude/rules/build-mvp.md` |
-| build-experiment | any file inside `{initiative-folder}/02-experiment/` | `~/.claude/rules/build-experiment.md` |
-| build-feature | any file inside `{initiative-folder}/03-feature/` | `~/.claude/rules/build-feature.md` |
-| improve | any file inside `{initiative-folder}/improvement-reports/` | `~/.claude/rules/improve.md` |
-| monitor | any file inside `{initiative-folder}/signal-reports/` | `~/.claude/rules/monitor.md` |
-| decommission | `{initiative-folder}/04-decommission-report.md` | `~/.claude/rules/decommission.md` |
-| client-deliverables | any file inside `external/client/` | `~/.claude/rules/client-deliverables.md` |
+| discovery | `{initiative-folder}/00-discovery-spec.md` | `ops/rules/discovery.md` |
+| design-sprint | `{initiative-folder}/01-design-sprint.md` | `ops/rules/design-sprint.md` |
+| build-mvp | any file inside `{initiative-folder}/02-mvp-experiment/` | `ops/rules/build-mvp.md` |
+| build-experiment | any file inside `{initiative-folder}/02-experiment/` | `ops/rules/build-experiment.md` |
+| build-feature | any file inside `{initiative-folder}/03-feature/` | `ops/rules/build-feature.md` |
+| improve | any file inside `{initiative-folder}/improvement-reports/` | `ops/rules/improve.md` |
+| monitor | any file inside `{initiative-folder}/signal-reports/` | `ops/rules/monitor.md` |
+| decommission | `{initiative-folder}/04-decommission-report.md` | `ops/rules/decommission.md` |
+
+`client-deliverables` is not part of Cogway core (see DD-3) — it is host-project-specific and not present in this repo's `ops/rules/`.
 
 ---
 

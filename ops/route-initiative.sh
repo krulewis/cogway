@@ -27,6 +27,9 @@ DECOMMISSION_REPORT="$INITIATIVE_PATH/04-decommission-report.md"
 # Frontmatter-first: checks the leading --- / --- fence for `key: value`, trimming
 # inline `# comment` and trailing whitespace, then falls back to a whole-file
 # bold `**key:**`/plain `key:` scan for files not yet migrated to frontmatter.
+# Values are lowercased before returning — every caller compares against
+# lowercase enum literals ("approved", "in_progress", etc.), so normalizing
+# here once keeps all routing comparisons case-insensitive-by-write.
 field() {
     local file="$1" key="$2" val=""
     if [ -f "$file" ] && [ "$(head -n1 "$file")" = "---" ]; then
@@ -40,7 +43,7 @@ field() {
             | sed -E "s/^\*\*${key}:\*\*[[:space:]]*|^${key}:[[:space:]]*//; s/[[:space:]]*(#.*)?\$//" \
             | tr -d '\r')
     fi
-    echo "$val"
+    echo "$val" | tr '[:upper:]' '[:lower:]'
 }
 
 # ── Helper: count data rows in a markdown table under a ## Section heading ────
@@ -50,10 +53,11 @@ count_entries() {
     local file="$1" key="$2"
     local heading
     heading=$(echo "$key" | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')
-    awk "/^## ${heading}/{f=1;header=0;next} \
+    awk -v heading="$heading" \
+        '$0 ~ "^## " heading {f=1;header=0;next} \
          f && /^## /{exit} \
          f && /^\|[^-]/{if(header){c++}else{header=1}} \
-         END{print c+0}" \
+         END{print c+0}' \
         "$file" 2>/dev/null
 }
 
@@ -89,7 +93,7 @@ improvement_mini_sprint_status=""
 }
 
 [ -f "$EXPERIMENT_REPORT" ] && {
-    exp_verdict=$(field "$EXPERIMENT_REPORT" "overall_verdict" | tr '[:upper:]' '[:lower:]')
+    exp_verdict=$(field "$EXPERIMENT_REPORT" "overall_verdict")
     # Count data rows in the Extensions table (skip heading row "| Extended at |" and separator)
     exp_extensions_count=$(awk '/^\*\*Extensions:\*\*/{f=1;header=0;next} \
         f && /^\|[^-]/{if(header){c++}else{header=1}} \

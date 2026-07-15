@@ -1,9 +1,3 @@
----
-description: Build:MVP phase composition — 12-task list, spawn order, PR review loop, human-asset gate, estimate_cost inline step
-globs: ["**/02-mvp-experiment/**"]
-alwaysApply: false
----
-
 # Build:MVP Phase — loads as: ops/rules/build-mvp.md
 # Root index pointer: build-mvp → this file
 

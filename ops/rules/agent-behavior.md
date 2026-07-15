@@ -1,9 +1,3 @@
----
-description: Universal agent rules — tool use preference, codebase-memory-mcp first, agent delegation table, model selection, parallelism
-globs: []
-alwaysApply: true
----
-
 # Agent Behavior Rules — loads as: ops/rules/agent-behavior.md
 # Root index pointer: agent-behavior → this file
 
