@@ -96,9 +96,30 @@ bash ops/route-initiative.sh /tmp/cogway-demo examples/walkthrough-initiative/ro
 rm -rf /tmp/cogway-demo
 ```
 
-From there, the committed `01-design-sprint.md` (already present in the real
-walkthrough folder, with its own unfilled `design_approved` field) shows the next
-gate: `DS1|escalate|gate-2`.
+To see the gate *after that* (`DS1|escalate|gate-2`), copy the *whole* initiative
+folder this time, not just the discovery spec — a real D2 dispatch would have
+produced a design sprint deliverable, and this walkthrough's committed
+`01-design-sprint.md` (with its own unfilled `design_approved` field) stands in
+for it:
+
+```bash
+mkdir -p /tmp/cogway-demo && \
+  cp -r examples/walkthrough-initiative/docs/initiatives/2026-01-01-example-feature/. \
+     /tmp/cogway-demo/
+sed 's/^discovery_approved:$/discovery_approved: approved/' \
+  /tmp/cogway-demo/00-discovery-spec.md > /tmp/cogway-demo/tmp && \
+  mv /tmp/cogway-demo/tmp /tmp/cogway-demo/00-discovery-spec.md
+bash ops/route-initiative.sh /tmp/cogway-demo examples/walkthrough-initiative/roadmap.md
+# -> DS1|escalate|gate-2
+rm -rf /tmp/cogway-demo
+```
+
+Running `route-initiative.sh` directly against the real, unmodified
+`examples/walkthrough-initiative/` folder still returns `D1|escalate|gate-1` even
+though `01-design-sprint.md` is already sitting there — its discovery spec is
+deliberately left unapproved as the walkthrough's starting state, and D2's
+approved-discovery precondition has to be met before the design-sprint file's
+existence matters at all.
 
 ## Lifecycle State Diagram
 
