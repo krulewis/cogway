@@ -12,10 +12,30 @@ copy, and shows you the resulting `FAIL` lines — live, in your terminal, witho
 touching the real router. That's the whole pitch: the orchestrator's own test suite
 catches a routing bug, on command.
 
+## Why this exists
+
+Prose rules don't hold for LLM orchestrators — they over-read, improvise, and
+confidently do the wrong next thing. Cogway moves routing out of the prompt and
+into a tested bash script, and phase gates (discovery → design sprint → build →
+monitor → improve → decommission) into explicit fields a script can check, not
+verbal approvals an agent has to remember correctly.
+
+## Proof, not just claims
+
+This isn't tested only on fixtures. The same pipeline has directed four real,
+shipped products, solo, no engineers on any of them:
+[CampBuddy](https://mycampbuddy.app) (iOS app, live on TestFlight, 1300+ tests),
+[Stashtrend](https://stashtrend.com) ([source](https://github.com/krulewis/stashtrend)),
+[tokencast](https://github.com/krulewis/tokencast) (MIT, shipped OSS), and this
+repo. The staff-reviewer + Codex adversarial-review pass this pipeline runs on
+every change has caught real bugs across all of them — including a data-loss bug
+in this repo's own migration tooling that the test suite had missed, found while
+building Cogway itself, using Cogway's own review process.
+
 ## Quickstart
 
 ```bash
-git clone <this-repo> cogway && cd cogway
+git clone https://github.com/krulewis/cogway.git cogway && cd cogway
 ```
 
 **1. Run the test suite.** Five scripts cover the router, the deliverable-field
@@ -168,21 +188,23 @@ generator any time a canonical source changes.
 pattern-based (AWS keys, generic `key:`/`token:`/`password:`-shaped assignments,
 PEM private-key headers), no external dependency. CI job 3 runs it on every
 push/PR. It is also meant to be run by hand — `bash scripts/secret-scan.sh .` —
-immediately before this repo's first `git push` to any remote, so a leaked secret
-is caught before it's committed to public history rather than after; this local
-run is a documented required step, not (yet) an installed git hook.
+before pushing new history to the public remote, so a leaked secret is caught
+before it lands in public history rather than after; this local run is a
+documented required step, not (yet) an installed git hook.
+
+## License
+
+MIT — Copyright (c) 2026 Kelly Lewis. See `LICENSE`.
 
 ## Contributing
 
-This is a young, single-maintainer project. The router and its test suite are the
-contract — a change to `ops/route-initiative.sh` isn't done until
+Cogway is maintained by one person, and the contract is explicit: the router and
+its test suite. A change to `ops/route-initiative.sh` isn't done until
 `ops/tests/route-initiative-test.sh` (and the fixture it needs) reflects it. Start
 by reading `AGENTS.md` and `skills/orchestrator/SKILL.md`, then `ops/rules/` for
 the phase you're touching.
 
 Open items:
-- `LICENSE` is a draft (MIT, placeholder copyright holder) pending confirmation
-  before this repo goes public — see `LICENSE` itself for the current status.
 - Codex model-name and tools-grant-key mappings need verification against a real
   Codex CLI install (see the `VERIFY-AT-BUILD-TIME` markers in generated
   `.codex/agents/*.toml`).
