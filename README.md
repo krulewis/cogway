@@ -226,6 +226,12 @@ by reading `AGENTS.md` and `skills/orchestrator/SKILL.md`, then `ops/rules/` for
 the phase you're touching.
 
 Open items:
+- **Bug — EXP extension counter misses `## Extensions` headings.**
+  `ops/route-initiative.sh`'s extension count only matches the bold `**Extensions:**`
+  marker, so a report using a `## Extensions` heading reads 0 extensions and `EXP4`
+  (the human `gate-exp-inconclusive`) can never fire. The fixtures share the bold
+  assumption, so the suite stays green. Fix must add a `## Extensions` heading fixture
+  that fails pre-fix. See `docs/bugs/exp-extensions-count-heading-mismatch.md`.
 - Codex model-name and tools-grant-key mappings need verification against a real
   Codex CLI install (see the `VERIFY-AT-BUILD-TIME` markers in generated
   `.codex/agents/*.toml`).
