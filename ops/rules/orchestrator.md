@@ -125,6 +125,8 @@ The orchestrator MUST read the initiative file listed in the "Read this file" co
 | monitor | any file inside `{initiative-folder}/signal-reports/` | `ops/rules/monitor.md` |
 | decommission | `{initiative-folder}/04-decommission-report.md` | `ops/rules/decommission.md` |
 
+`ops/rules/build-common.md` is not a dispatch target and has no row above. It holds the rules shared by the four phases that dispatch `implementer` — Build:MVP, Build:Experiment, Build:Feature and Improve — currently the **Live-Data Validation Gate**. Each of those four phase files names its own trigger point and links here for the checks, so read it whenever one of them is in play.
+
 `client-deliverables` is not part of Cogway core (see DD-3) — it is host-project-specific and not present in this repo's `ops/rules/`.
 
 ---

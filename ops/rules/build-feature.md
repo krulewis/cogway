@@ -26,11 +26,17 @@
 | 17 | Update documentation | `docs-updater` | [15] |
 | 18 | Functional review document | `functional-review-writer` | [16, 17] |
 
-**Spawn:** `pm` → `researcher` + `performance-reviewer` in parallel → `architect` → `ux-designer` + `visual-designer` in parallel → `engineer` (initial plan) → `staff-reviewer` + `/codex:adversarial-review --wait` in parallel (plan review) → orchestrator synthesizes findings → `engineer` (revised plan) → **run `estimate_cost` MCP tool inline** → **human-asset gate** → `qa` (failing tests) + `frontend-designer` in parallel → `implementer` → `security-reviewer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → `playwright-qa` + `docs-updater` in parallel → `functional-review-writer`
+**Spawn:** `pm` → `researcher` + `performance-reviewer` in parallel → `architect` → `ux-designer` + `visual-designer` in parallel → `engineer` (initial plan) → `staff-reviewer` + `/codex:adversarial-review --wait` in parallel (plan review) → orchestrator synthesizes findings → `engineer` (revised plan) → **run `estimate_cost` MCP tool inline** → **human-asset gate** → `qa` (failing tests) + `frontend-designer` in parallel → `implementer` → `security-reviewer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → **Live-Data Validation Gate** → `playwright-qa` + `docs-updater` in parallel → `functional-review-writer`
 
 **PR review loop (after task 14):** Pass 1 — dispatch fresh `staff-reviewer` (Opus) AND run `/codex:adversarial-review --base main --wait` in parallel with PR diff. Synthesize inline (dedup, highest severity wins, disagreements flagged). If findings → `implementer`/`debugger` fixes → commit → new pass. Pass 2+ — tiered (`staff-reviewer` Opus → `code-reviewer` Sonnet if ≤2 findings and no Critical/High), no Codex. Repeat until "no remaining comments."
 
 *`security-reviewer` waits for `implementer` (which waits for `frontend-designer`) because component designs affect security decisions.*
+
+---
+
+## Live-Data Validation Gate (after task 15, before tasks 16/17/18)
+
+Full checklist (4 checks, shared across all build phases): `ops/rules/build-common.md`. Build:Feature is as exposed to this failure class as the experiment phases are — a feature that ships a scheduled job, capture script or export has a pipeline whose first real run is still its first real run. Run all 4 checks after the PR review loop closes clean, before `playwright-qa` / `docs-updater` / `functional-review-writer`.
 
 ---
 

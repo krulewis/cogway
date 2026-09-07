@@ -18,7 +18,7 @@
 | 9 | Conformity review | `staff-reviewer` | [8] |
 | 10 | Security review | `security-reviewer` | [9] |
 
-**Spawn:** `experiment-designer` → `ux-designer` → `architect` → `engineer` (initial plan) → `staff-reviewer` + `/codex:adversarial-review --wait` in parallel (plan review) → orchestrator synthesizes findings → `engineer` (revised plan) → **run `estimate_cost` MCP tool inline** → **human-asset gate** → `qa` (failing tests) → `implementer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → `security-reviewer`
+**Spawn:** `experiment-designer` → `ux-designer` → `architect` → `engineer` (initial plan) → `staff-reviewer` + `/codex:adversarial-review --wait` in parallel (plan review) → orchestrator synthesizes findings → `engineer` (revised plan) → **run `estimate_cost` MCP tool inline** → **human-asset gate** → `qa` (failing tests) → `implementer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → `security-reviewer` → **Live-Data Validation Gate**
 
 **PR review loop (after task 9):** Pass 1 — dispatch fresh `staff-reviewer` (Opus) AND run `/codex:adversarial-review --base main --wait` in parallel with PR diff. Synthesize inline (dedup, highest severity wins, disagreements flagged). If findings → `implementer`/`debugger` fixes → commit → new pass. Pass 2+ — tiered (`staff-reviewer` Opus → `code-reviewer` Sonnet if ≤2 findings and no Critical/High), no Codex. Repeat until "no remaining comments."
 
@@ -31,6 +31,12 @@
 After `experiment-designer` returns and **before dispatching `ux-designer`**, the orchestrator reviews the instrumentation plan:
 
 For each metric in the spec, verify its capture method is fully automated (git diffs, task list state, hook output, file change counts, CI results). If any metric requires operator logging or human annotation → return the spec to `experiment-designer` with explicit instruction to replace those metrics with automated equivalents. Do not advance past task 1 until all metrics are automatable.
+
+---
+
+## Live-Data Validation Gate (after task 10, before the window opens)
+
+Full checklist (4 checks, shared across all build phases): `ops/rules/build-common.md`. Trigger point for this phase: after the PR review loop and `security-reviewer` both close clean, and **before the orchestrator records a `window_start_date` / advances the initiative to `monitor`**, run all 4 checks for every metric in the spec. If any check fails, the window does not open — fix and re-verify first.
 
 ---
 

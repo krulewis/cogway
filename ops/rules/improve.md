@@ -18,12 +18,18 @@
 | 9 | Staff review | `staff-reviewer` | [8] |
 
 Create all 9 tasks upfront. After `improve-analyst` returns, check `mini_design_sprint_triggered`:
-- **false:** mark tasks 4 + 5 `completed` (skipped), then spawn `security-reviewer` + `performance-reviewer` → **human-asset gate** → `implementer` + `frontend-designer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → `staff-reviewer`
-- **true:** spawn `security-reviewer` + `performance-reviewer` + `ux-designer` + `visual-designer` all in parallel → **human-asset gate** → `implementer` + `frontend-designer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → `staff-reviewer`
+- **false:** mark tasks 4 + 5 `completed` (skipped), then spawn `security-reviewer` + `performance-reviewer` → **human-asset gate** → `implementer` + `frontend-designer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → **Live-Data Validation Gate** → `staff-reviewer`
+- **true:** spawn `security-reviewer` + `performance-reviewer` + `ux-designer` + `visual-designer` all in parallel → **human-asset gate** → `implementer` + `frontend-designer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → **Live-Data Validation Gate** → `staff-reviewer`
 
 **File conflict rule:** `implementer` and `frontend-designer` run in parallel only if their assigned file sets are non-overlapping per the engineer's plan. If both need to modify the same component files, serialize them: `implementer` first, then `frontend-designer`.
 
 **PR review loop (after task 6):** Pass 1 — dispatch fresh `staff-reviewer` (Opus) AND run `/codex:adversarial-review --base main --wait` in parallel with PR diff. Synthesize inline (dedup, highest severity wins, disagreements flagged). If findings → `implementer`/`debugger` fixes → commit → new pass. Pass 2+ — tiered (`staff-reviewer` Opus → `code-reviewer` Sonnet if ≤2 findings and no Critical/High), no Codex. Repeat until "no remaining comments."
+
+---
+
+## Live-Data Validation Gate (after the PR review loop closes clean, before task 9)
+
+Full checklist (4 checks, shared across all build phases): `ops/rules/build-common.md`. Improve dispatches `implementer` exactly the way the build phases do, so an improvement that touches or adds a pipeline, capture script, export or scheduled job is just as exposed to "it ran and looked fine but produced nothing" as a fresh build — an improvement is still new code the first time it runs for real.
 
 ---
 
