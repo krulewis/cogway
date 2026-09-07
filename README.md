@@ -43,7 +43,7 @@ lint, a cross-file consistency check, the schema migration, and the agent-roster
 generator, plus a self-test for the secret scanner:
 
 ```bash
-bash ops/tests/route-initiative-test.sh          # 38 passed, 0 failed
+bash ops/tests/route-initiative-test.sh          # 40 passed, 0 failed
 bash ops/tests/check-deliverable-fields-test.sh  # 12 passed, 0 failed
 bash ops/tests/field-map-consistency-test.sh     # 11 passed, 0 failed
 bash ops/tests/schema-migration-test.sh          # 12 passed, 0 failed
@@ -165,7 +165,11 @@ graph TD
 The test suite also runs 6 legacy bold-markdown fixtures (`*-legacy-bold`) proving
 the router still parses the pre-frontmatter `**field:** value` format, plus one
 `frontmatter-inline-comment` fixture exercising the comment-trim edge case
-documented in `ops/rules/orchestrator.md` — 38 assertions total, all in
+documented in `ops/rules/orchestrator.md`, plus two `exp-extend-*-heading`
+fixtures written with a `## Extensions` heading instead of the schema's
+`**Extensions:**` bold marker — the router accepts both, and before it did, a
+heading-form report counted as zero extensions and EXP4's human gate was
+unreachable — 40 assertions total, all in
 `ops/tests/route-initiative-test.sh`.
 
 ## Architecture
