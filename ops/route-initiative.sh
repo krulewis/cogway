@@ -94,8 +94,13 @@ improvement_mini_sprint_status=""
 
 [ -f "$EXPERIMENT_REPORT" ] && {
     exp_verdict=$(field "$EXPERIMENT_REPORT" "overall_verdict")
-    # Count data rows in the Extensions table (skip heading row "| Extended at |" and separator)
-    exp_extensions_count=$(awk '/^\*\*Extensions:\*\*/{f=1;header=0;next} \
+    # Count data rows in the Extensions table (skip heading row "| Extended at |" and separator).
+    # Two markers are accepted: the bold `**Extensions:**` form the schema shows, and a
+    # plain `## Extensions` markdown heading. Reports in the wild are written both ways,
+    # and a marker this counter does not recognise reads as zero extensions — which pins
+    # the experiment on EXP3 (extend) forever and makes EXP4's gate-exp-inconclusive
+    # human gate unreachable. Fixtures exist for both forms; keep it that way.
+    exp_extensions_count=$(awk '/^\*\*Extensions:\*\*/ || /^##[[:space:]]+Extensions[[:space:]]*$/{f=1;header=0;next} \
         f && /^\|[^-]/{if(header){c++}else{header=1}} \
         f && /^[^|]/{exit} \
         END{print c+0}' "$EXPERIMENT_REPORT" 2>/dev/null || echo 0)

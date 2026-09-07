@@ -45,6 +45,15 @@ assert_rule "exp-kill"                      "EXP2|dispatch|decommission-analyst"
 assert_rule "exp-extend-0"                  "EXP3|update|extend-experiment"
 assert_rule "exp-extend-1"                  "EXP3|update|extend-experiment"
 assert_rule "exp-extend-2"                  "EXP4|escalate|gate-exp-inconclusive"
+# Extensions written as a `## Extensions` heading rather than the `**Extensions:**`
+# bold marker the schema shows. Both forms are accepted — see the counter in
+# route-initiative.sh. The -2- case is the decisive one: before the counter
+# recognised the heading form it read 0 extensions and returned EXP3, so EXP4's
+# gate-exp-inconclusive human gate was unreachable and an experiment could extend
+# without bound. The -1- case is the contrast: it must NOT reach the limit, which
+# is what proves the header row is still being skipped rather than counted.
+assert_rule "exp-extend-2-heading"          "EXP4|escalate|gate-exp-inconclusive"
+assert_rule "exp-extend-1-heading"          "EXP3|update|extend-experiment"
 assert_rule "build-in-progress"             "BF0|no-op|"
 assert_rule "build-complete-no-metrics"     "FALLBACK|escalate|human"
 assert_rule "build-complete-with-metrics"   "BF1|update|begin-monitor"

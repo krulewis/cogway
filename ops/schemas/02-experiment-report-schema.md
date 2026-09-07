@@ -25,6 +25,12 @@ overall_verdict: Promote | Kill | Extend
 **window_start_date:** YYYY-MM-DD
 **measurement_window:** {N days}
 
+<!-- The router's extension counter (route-initiative.sh, EXP3/EXP4) accepts either
+     this bold `**Extensions:**` marker or a plain `## Extensions` heading. Prefer the
+     bold form shown here for consistency with the rest of this schema, but a report
+     written with the heading form counts correctly and must keep doing so — both forms
+     have fixtures in ops/tests/fixtures/. Any other marker reads as zero extensions,
+     which strands the experiment on EXP3 and makes EXP4's human gate unreachable. -->
 **Extensions:**
 | Extended at | New window | Rationale |
 |---|---|---|
