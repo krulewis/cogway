@@ -190,7 +190,9 @@ row — 49 assertions total, all in
 - **`ops/`** — the enforcement layer. `route-initiative.sh` (the router),
   `check-deliverable-fields.sh` (write-side field lint), `rules/` (11 phase rule
   files ported from the personal system, minus the two that were entirely
-  client/billing-facing), `schemas/` (8 deliverable frontmatter schemas),
+  client/billing-facing, plus `build-common.md` — checks shared by all four
+  build-ish phases rather than duplicated into each), `schemas/` (8 deliverable
+  frontmatter schemas),
   `templates/` (initiative folder skeletons), and `tests/` (the fixture suite
   covering all of the above).
 
