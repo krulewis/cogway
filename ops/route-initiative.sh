@@ -101,6 +101,10 @@ improvement_recommendation=""
 improvement_mini_sprint=""
 decommission_approved=""
 improvement_mini_sprint_status=""
+live_data_validation=""
+live_data_rows=0
+improvement_live_data=""
+improvement_live_data_rows=0
 
 [ -f "$DISCOVERY_SPEC" ] && {
     discovery_approved=$(field "$DISCOVERY_SPEC" "discovery_approved")
@@ -143,6 +147,16 @@ improvement_mini_sprint_status=""
     build_status=$(field "$FEATURE_RECORD" "build_status")
     baseline_populated=$(count_entries "$FEATURE_RECORD" "baseline_metrics")
     thresholds_populated=$(count_entries "$FEATURE_RECORD" "monitoring_thresholds")
+    # live_data_validation is read by BOTH field() (the scalar) and count_entries()
+    # (the "## Live Data Validation" evidence table). field-map-consistency-test.sh's
+    # EXPECTED_TABLE tracks field() keys only — baseline_metrics is absent from it for
+    # the same reason. This is intentional, not an omission to fix (see R5 in the
+    # architecture decision). count_entries()'s heading match (below) is an unanchored
+    # prefix — "## Live Data Validation Evidence" would also match "Live Data
+    # Validation" — harmless today (no such heading exists) but noted here so a future
+    # second "## Live Data *" heading is understood to alias (Low Finding 16).
+    live_data_validation=$(field "$FEATURE_RECORD" "live_data_validation")
+    live_data_rows=$(count_entries "$FEATURE_RECORD" "live_data_validation")
 }
 
 # Most recent signal report
@@ -163,6 +177,8 @@ if [ -d "$_effective_improvement_dir" ]; then
         improvement_recommendation=$(field "$latest_improvement" "recommendation")
         improvement_mini_sprint=$(field "$latest_improvement" "mini_design_sprint_triggered")
         improvement_mini_sprint_status=$(field "$latest_improvement" "mini_sprint_status")
+        improvement_live_data=$(field "$latest_improvement" "live_data_validation")
+        improvement_live_data_rows=$(count_entries "$latest_improvement" "live_data_validation")
     }
 fi
 
@@ -181,6 +197,25 @@ _no_signals=0
 _no_improvement=0
 { [ ! -d "$_effective_improvement_dir" ] || \
   [ -z "$(ls "$_effective_improvement_dir"/*.md 2>/dev/null)" ]; } && _no_improvement=1
+
+# Live-data gate satisfied: scalar is a passing value AND at least one evidence row
+# exists under "## Live Data Validation". ${var:-0} defends against count_entries
+# returning empty — count_entries's own `awk 'END{print c+0}'` always emits today, so
+# this should never actually be empty, but new call sites should not depend on that
+# invariant silently (existing baseline_populated/thresholds_populated sites are safe
+# only because of that same invariant).
+#
+# Both clauses are independently load-bearing and both are covered by a dedicated
+# fixture that isolates it: build-complete-gate-claim-no-rows (scalar valid, zero rows)
+# proves the row-count clause; build-complete-gate-failed (scalar invalid/failed, ONE
+# real row) proves the scalar clause — see 00-test-first-work.md, High Finding 1.
+_ldv_ok=0
+{ [ "$live_data_validation" = "validated" ] || [ "$live_data_validation" = "not_applicable" ]; } \
+  && [ "${live_data_rows:-0}" -gt 0 ] && _ldv_ok=1
+
+_imp_ldv_ok=0
+{ [ "$improvement_live_data" = "validated" ] || [ "$improvement_live_data" = "not_applicable" ]; } \
+  && [ "${improvement_live_data_rows:-0}" -gt 0 ] && _imp_ldv_ok=1
 
 # ── Routing rules (first match wins) ─────────────────────────────────────────
 
@@ -265,14 +300,27 @@ _no_improvement=0
 [ -f "$FEATURE_RECORD" ] && [ "$build_status" = "in_progress" ] \
     && echo "BF0|no-op|" && exit 0
 
-# BF1: build complete, metrics populated, no signal reports yet, no improvement reports yet
+# BF1: build complete, metrics populated, live-data gate recorded with evidence,
+#      no signal reports yet, no improvement reports yet
 # (_no_improvement guards against re-triggering begin-monitor on already-improved initiatives)
+[ "$build_status" = "complete" ] \
+    && [ "$baseline_populated" -gt 0 ] \
+    && [ "$thresholds_populated" -gt 0 ] \
+    && [ "$_ldv_ok" -eq 1 ] \
+    && [ "$_no_signals" -eq 1 ] \
+    && [ "$_no_improvement" -eq 1 ] \
+    && echo "BF1|update|begin-monitor" && exit 0
+
+# BF1b: everything BF1 requires EXCEPT the live-data gate record. Reached when
+#       live_data_validation is blank, absent, `failed`, an unrecognised value, or set
+#       to a passing value with zero evidence rows under "## Live Data Validation".
+#       Named rather than left to FALLBACK so the escalation can say what is missing.
 [ "$build_status" = "complete" ] \
     && [ "$baseline_populated" -gt 0 ] \
     && [ "$thresholds_populated" -gt 0 ] \
     && [ "$_no_signals" -eq 1 ] \
     && [ "$_no_improvement" -eq 1 ] \
-    && echo "BF1|update|begin-monitor" && exit 0
+    && echo "BF1b|escalate|gate-live-data" && exit 0
 
 # MON1: urgent improve signal, no improvement in progress
 [ "$signal_recommendation" = "trigger_improve_urgent" ] && [ "$_no_improvement" -eq 1 ] \
@@ -295,10 +343,16 @@ _no_improvement=0
 [ "$improvement_recommendation" = "flag_decommission" ] && [ ! -f "$DECOMMISSION_REPORT" ] \
     && echo "IMP2|dispatch|decommission-analyst" && exit 0
 
-# IMP3: stable or continue → return to monitor
+# IMP3: stable or continue_improve, live-data gate recorded with evidence
 { [ "$improvement_recommendation" = "stable" ] \
   || [ "$improvement_recommendation" = "continue_improve" ]; } \
+    && [ "$_imp_ldv_ok" -eq 1 ] \
     && echo "IMP3|update|return-to-monitor" && exit 0
+
+# IMP3b: recommendation set to stable/continue_improve, live-data gate not recorded
+{ [ "$improvement_recommendation" = "stable" ] \
+  || [ "$improvement_recommendation" = "continue_improve" ]; } \
+    && echo "IMP3b|escalate|gate-live-data" && exit 0
 
 # DEC1: decommission report exists, awaiting human approval
 [ -f "$DECOMMISSION_REPORT" ] \

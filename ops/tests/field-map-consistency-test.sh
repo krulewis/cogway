@@ -39,7 +39,7 @@ EXPECTED_TABLE='00-discovery-spec\.md|discovery_approved
 01-design-sprint\.md|design_approved,initiative_type
 mvp-experiment-report\.md|investment_decision,overall_verdict
 experiment-report\.md|overall_verdict
-feature-record\.md|build_status
+feature-record\.md|build_status,live_data_validation
 04-decommission-report\.md|decommission_approved
 \*-signal\.md|recommendation'
 
@@ -65,6 +65,15 @@ else
     fail "improvement-reports directory branch → recommendation NOT found assigned unconditionally immediately inside the if-branch (directory dispatch may be missing entirely)"
 fi
 
+# live_data_validation must be assigned in the SAME unconditional specs=() line as
+# recommendation (mirrors the assertion above).
+if grep -A1 'if \[ "\$parent" = "improvement-reports" \]' "$LINT_SCRIPT" 2>/dev/null \
+    | tail -1 | grep -q 'live_data_validation='; then
+    pass "improvement-reports directory branch → live_data_validation assigned unconditionally"
+else
+    fail "improvement-reports directory branch → live_data_validation NOT found assigned unconditionally in the same specs=() line as recommendation"
+fi
+
 # 2. mini_design_sprint_triggered and mini_sprint_status must each be behind a
 #    count_lines ... -gt 0 && specs+= presence guard within the if/else range —
 #    never assigned unconditionally.
@@ -86,13 +95,43 @@ for mini_field in mini_design_sprint_triggered mini_sprint_status; do
     fi
 done
 
+# live_data_validation must NOT be behind a presence guard (inverse of the mini_*
+# assertions above) — it is required, not optional, for every improvement report.
+_range_text=$(_if_else_range)
+if echo "$_range_text" | grep -qE "count_lines.*\"live_data_validation\".*-gt 0.*&&.*specs\+="; then
+    fail "improvement-reports directory branch → live_data_validation found behind a presence guard (must be unconditional)"
+else
+    pass "improvement-reports directory branch → live_data_validation is NOT behind a presence guard (correctly required)"
+fi
+
+# Cross-branch equality: feature-record.md and improvement-reports must share the same
+# live_data_validation allowed-value list (the shared-field design decision). Extracted
+# from the literal case/specs lines, NOT a shell variable — extract_keys_for_case (and
+# this extractor) grep the literal "key=..." text on the case line itself; hoisting the
+# list into a variable would make the key invisible to both this test and that helper.
+extract_ldv_values() {
+    local file="$1" pattern="$2"
+    grep -E "$pattern" "$file" | grep -oE '"live_data_validation=[^"]*"' | sed -E 's/^"live_data_validation=//; s/"$//'
+}
+_fr_ldv=$(extract_ldv_values "$LINT_SCRIPT" '  feature-record\.md\)')
+_imp_ldv=$(grep -A1 'if \[ "\$parent" = "improvement-reports" \]' "$LINT_SCRIPT" 2>/dev/null \
+    | tail -1 | grep -oE '"live_data_validation=[^"]*"' | sed -E 's/^"live_data_validation=//; s/"$//')
+if [ -n "$_fr_ldv" ] && [ "$_fr_ldv" = "$_imp_ldv" ]; then
+    pass "live_data_validation allowed-value list matches between feature-record.md and improvement-reports (shared field)"
+else
+    fail "live_data_validation allowed-value list mismatch: feature-record.md='$_fr_ldv' improvement-reports='$_imp_ldv'"
+fi
+
 # ── Router-side cross-check ──────────────────────────────────────────────────
+# String-presence only, not behavioural proof — see route-initiative-test.sh's
+# BF1/BF1b/IMP3/IMP3b fixtures for the actual behavioral proof that the router reads this
+# field correctly.
 router_missing=""
-for name in IMPROVEMENT_REPORTS_DIR recommendation mini_design_sprint_triggered mini_sprint_status; do
+for name in IMPROVEMENT_REPORTS_DIR recommendation mini_design_sprint_triggered mini_sprint_status live_data_validation; do
     grep -q "$name" "$ROUTE_SCRIPT" || router_missing="$router_missing $name"
 done
 if [ -z "$router_missing" ]; then
-    pass "route-initiative.sh references all of: IMPROVEMENT_REPORTS_DIR, recommendation, mini_design_sprint_triggered, mini_sprint_status"
+    pass "route-initiative.sh references all of: IMPROVEMENT_REPORTS_DIR, recommendation, mini_design_sprint_triggered, mini_sprint_status, live_data_validation"
 else
     fail "route-initiative.sh missing references to:$router_missing"
 fi
