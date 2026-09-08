@@ -21,7 +21,12 @@ assert_crlf() {
     if grep -q $'\r' "$FIXTURES/$relpath" 2>/dev/null; then
         echo "PASS: $relpath still contains CR"; PASS=$((PASS + 1))
     else
-        echo "FAIL: $relpath has NO CR — normalised, no longer tests CRLF handling"; FAIL=$((FAIL + 1))
+        if [ ! -r "$FIXTURES/$relpath" ]; then
+            echo "FAIL: $relpath is missing or unreadable"
+        else
+            echo "FAIL: $relpath has NO CR — normalised, no longer tests CRLF handling"
+        fi
+        FAIL=$((FAIL + 1))
     fi
 }
 
