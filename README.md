@@ -248,6 +248,12 @@ Open items — tracked in `docs/bugs/` where there is detail worth writing down:
   session ending in that window produces a routine `BF1b` escalation on a well-run
   initiative. Correct, but benign escalations erode gate attention. →
   [detail](docs/bugs/build-status-complete-written-before-live-data-gate.md)
+- `ops/route-initiative.sh` selects the most recent signal/improvement report with
+  `ls -t`, which sorts by filesystem mtime, not the date already in the filename — a
+  tied or inverted mtime (checkout, tar, rsync, CI cache restore, or just editing an
+  old report) makes `MON2` wrongly dispatch a whole improve phase instead of `MON3`'s
+  no-op. →
+  [detail](docs/bugs/ls-t-selects-reports-by-mtime-not-date.md)
 - Codex model-name and tools-grant-key mappings need verification against a real
   Codex CLI install (see the `VERIFY-AT-BUILD-TIME` markers in generated
   `.codex/agents/*.toml`).
