@@ -167,12 +167,15 @@ When `route-initiative.sh` returns `BF1b|escalate|gate-live-data` or
 resolutions explicitly, using the generic Format block in `ops/rules/orchestrator.md`'s
 `escalate` section, with this **Decision required** text:
 
-> `live_data_validation` in `<path>` must be set to `validated`, `not_applicable`, or
-> `failed`, **and** the `## Live Data Validation` table must have at least one row. If the
-> gate already ran, record it. If this build adds no scheduled or triggered pipeline,
-> write `not_applicable` and a `(none)` row naming the PR you checked. **If the phase has
-> not yet reached the gate, this escalation is premature — resume the phase; do not write
-> a value to clear it.**
+> `live_data_validation` in `<path>` must be set to `validated` or `not_applicable`,
+> **and** the `## Live Data Validation` table must have at least one row. Those two values
+> are the only ones that clear the gate. `failed` is a valid state to record — it says the
+> checks ran and something did not pass — but it does **not** clear the gate and the router
+> will keep returning this escalation until the underlying failure is fixed and the value
+> changes. If the gate already ran and passed, record it. If this build adds no scheduled
+> or triggered pipeline, write `not_applicable` and a `(none)` row naming the PR you
+> checked. **If the phase has not yet reached the gate, this escalation is premature —
+> resume the phase; do not write a value to clear it.**
 
 `<path>` is `03-feature/feature-record.md` for `BF1b`; the current
 `03-feature/improvement-reports/*.md` file for `IMP3b`. The rule name (`BF1b` vs `IMP3b`)

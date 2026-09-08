@@ -152,6 +152,11 @@ assert_rule "improve-stable-gate-blank"           "IMP3b|escalate|gate-live-data
 assert_rule "improve-stable-gate-claim-no-rows"   "IMP3b|escalate|gate-live-data"
 assert_rule "improve-stable-gate-failed"          "IMP3b|escalate|gate-live-data"
 assert_rule "improve-stable-gate-absent"          "IMP3b|escalate|gate-live-data"
+# MON3 is checked before IMP3/IMP3b, so a stale `stable` signal report shadows the
+# gate entirely: the improvement returns no-op rather than escalating, and sits
+# ungated. The ordering predates this change and is NOT altered here — this pins the
+# real behaviour so the docs and the router cannot drift apart again.
+assert_rule "improve-stable-gate-absent-with-signal" "MON3|no-op|"
 assert_rule "decommission-pending"          "DEC1|escalate|gate-decommission"
 assert_rule "decommission-approved"         "DEC2|dispatch|decommission-executor"
 assert_rule "decommission-rejected"         "DEC3|update|return-to-monitor"
