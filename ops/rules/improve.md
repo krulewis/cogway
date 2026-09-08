@@ -17,6 +17,13 @@
 | 8 | Conformity review | `staff-reviewer` | [6, 7] |
 | 9 | Staff review | `staff-reviewer` | [8] |
 
+**Task 1 write requirement:** `improve-analyst` must write both `recommendation` AND a
+`live_data_validation:` line — left blank — into the improvement report it authors at
+task 1. `check-deliverable-fields.sh` requires the `live_data_validation` field line to
+be present unconditionally (blank is a valid, passing lint state: "present, blank
+(awaiting gate decision)"); a report carrying only `recommendation` fails the lint. The
+Live-Data Validation Gate (below) fills the blank in later, after the PR review loop.
+
 Create all 9 tasks upfront. After `improve-analyst` returns, check `mini_design_sprint_triggered`:
 - **false:** mark tasks 4 + 5 `completed` (skipped), then spawn `security-reviewer` + `performance-reviewer` → **human-asset gate** → `implementer` + `frontend-designer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → **Live-Data Validation Gate** → `staff-reviewer`
 - **true:** spawn `security-reviewer` + `performance-reviewer` + `ux-designer` + `visual-designer` all in parallel → **human-asset gate** → `implementer` + `frontend-designer` → **conformity review** (`staff-reviewer`: check out-of-scope code, missing plan items, incorrect implementations) → **PR review loop** → **Live-Data Validation Gate** → `staff-reviewer`
@@ -39,12 +46,16 @@ amended Lifecycle Constraint in `ops/rules/orchestrator.md`). The router returns
 `IMP3b|escalate|gate-live-data` — not `IMP3` — until this is recorded, even once
 `recommendation` is set to `stable` or `continue_improve`.
 
-**One precedence caveat.** `MON3` is checked before `IMP3`/`IMP3b`, so if a signal
-report recommending `stable` is present, the router returns `MON3|no-op|` and the gate
+**Two precedence caveats.** `MON3` is checked before `IMP3`/`IMP3b`, so if the most
+recent signal report recommends `stable`, the router returns `MON3|no-op|` and the gate
 never fires — the improvement simply sits, ungated, and a scan reports nothing to do.
 This ordering predates the gate and is not changed here; fixture
-`improve-stable-gate-absent-with-signal` pins it. If you are working an improvement to
-completion, do not rely on the router to remind you about the gate.
+`improve-stable-gate-absent-with-signal` pins it. `IMP1` is also checked before
+`IMP3`/`IMP3b`: if `mini_design_sprint_triggered` is `true` and `mini_sprint_status` is
+absent or `pending`, the router returns `IMP1|dispatch|mini-design-sprint` and the gate
+does not fire either, even once `recommendation` is `stable`; fixture
+`improve-stable-gate-absent-with-mini-sprint` pins it. If you are working an improvement
+to completion, do not rely on the router to remind you about the gate.
 
 **Known ordering hazard:** `recommendation` is authored at task 1 of this phase's own task
 table — well before this gate runs (after task 6's PR review loop, before task 9). Any
