@@ -78,6 +78,15 @@ assert_rule "exp-extend-1-heading"          "EXP3|update|extend-experiment"
 # EXP4's inconclusive gate fired a full cycle early — cutting an experiment short
 # rather than extending it.
 assert_rule "exp-extend-1-spaced-separator" "EXP3|update|extend-experiment"
+# The separator test is lexical (`-`/`:`/pipe/space only), but a table has exactly
+# ONE delimiter row, positioned immediately after the header. A genuine data row
+# whose every cell is a `-` placeholder (e.g. rationale "not captured yet") matches
+# the same lexical pattern as a real separator and — if the test stayed purely
+# lexical — would be silently dropped as if it were the separator. Row 1 is a real
+# extension; row 2 is a hyphen-placeholder extension. Both must count (2 total),
+# reaching EXP4's limit. A count of 1 (the placeholder row dropped) would wrongly
+# return EXP3 and let the experiment extend past its limit unnoticed.
+assert_rule "exp-extend-2-hyphen-row"       "EXP4|escalate|gate-exp-inconclusive"
 # Same separator test, defeated by a trailing \r. On a CRLF experiment report ONE
 # extension counted as two and EXP4 fired a cycle early; on a CRLF feature record an
 # EMPTY metrics table satisfied BF1's populated-metrics guard.
@@ -96,6 +105,14 @@ assert_rule "build-complete-with-metrics"   "BF1|update|begin-monitor"
 # fix skips the separator rather than skipping the whole table.
 assert_rule "build-complete-spaced-separator-empty"     "FALLBACK|escalate|human"
 assert_rule "build-complete-spaced-separator-populated" "BF1|update|begin-monitor"
+# A separator row is positional (the row immediately after the header), not just
+# lexical. A genuine data row using `-` as a "not captured yet" placeholder in
+# EVERY cell (e.g. `| - | - | - |`) is lexically indistinguishable from a real
+# separator, but it is the SECOND pipe row after the header, not the first, so it
+# must be counted as data. Both metrics tables here use this placeholder shape;
+# dropping it (treating every separator-shaped row as a separator, not just the
+# first) undercounts to zero and wrongly returns FALLBACK instead of BF1.
+assert_rule "build-complete-hyphen-placeholder-metrics" "BF1|update|begin-monitor"
 assert_rule "monitor-urgent"                "MON1|dispatch|improve-urgent"
 assert_rule "monitor-improve"               "MON2|dispatch|improve"
 assert_rule "monitor-stable"                "MON3|no-op|"
