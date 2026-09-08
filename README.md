@@ -43,7 +43,7 @@ lint, a cross-file consistency check, the schema migration, and the agent-roster
 generator, plus a self-test for the secret scanner:
 
 ```bash
-bash ops/tests/route-initiative-test.sh          # 47 passed, 0 failed
+bash ops/tests/route-initiative-test.sh          # 49 passed, 0 failed
 bash ops/tests/check-deliverable-fields-test.sh  # 12 passed, 0 failed
 bash ops/tests/field-map-consistency-test.sh     # 11 passed, 0 failed
 bash ops/tests/schema-migration-test.sh          # 12 passed, 0 failed
@@ -171,8 +171,12 @@ fixtures written with a `## Extensions` heading instead of the schema's
 heading-form report counted as zero extensions and EXP4's human gate was
 unreachable — plus three `*-spaced-separator*` fixtures covering markdown
 separator rows written `| --- |` rather than `|---|`, plus two CRLF fixtures with
-runtime CR guards proving a `\r`-terminated separator is still recognised as one
-— 47 assertions total, all in
+runtime CR guards proving a `\r`-terminated separator is still recognised as one,
+plus two `*-hyphen-*` fixtures proving the separator/data distinction is
+positional (only the first pipe row after a header can be skipped as the
+separator) rather than lexical — a genuine data row whose cells are all `-`
+placeholders is counted, not silently dropped as if it were a second delimiter
+row — 49 assertions total, all in
 `ops/tests/route-initiative-test.sh`.
 
 ## Architecture

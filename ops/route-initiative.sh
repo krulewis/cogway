@@ -63,15 +63,24 @@ field() {
 # separator test and counts as a data row — the same empty-table bypass, reopened
 # for anyone whose editor writes CRLF. field() has always done tr -d '\r'; these
 # counters never did. Fixtures: build-complete-crlf-empty-metrics, exp-extend-1-crlf.
+#
+# The separator/data distinction is POSITIONAL, not lexical: a markdown table has
+# exactly one delimiter row, immediately after the header. `| - | - | - |` is a
+# valid CommonMark delimiter row AND a plausible data row (e.g. a "not captured
+# yet" placeholder), so no amount of character-class cleverness can tell them
+# apart by content alone. Only the first pipe row after the header is ever
+# eligible to be skipped as the separator (and even then only if it lexically
+# looks like one); every pipe row after that is data, even if it also happens to
+# look separator-shaped. Fixture: build-complete-hyphen-placeholder-metrics.
 count_entries() {
     local file="$1" key="$2"
     local heading
     heading=$(echo "$key" | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')
     awk -v heading="$heading" \
         '{sub(/\r$/,"")} \
-         $0 ~ "^## " heading {f=1;header=0;next} \
+         $0 ~ "^## " heading {f=1;header=0;sep=0;next} \
          f && /^## /{exit} \
-         f && /^\|/ && $0 !~ /^\|[-|: \t]*$/{if(header){c++}else{header=1}} \
+         f && /^\|/{if(!header){header=1;next}; if(!sep && $0 ~ /^\|[-|: \t]*$/){sep=1;next}; c++} \
          END{print c+0}' \
         "$file" 2>/dev/null
 }
@@ -119,9 +128,13 @@ improvement_mini_sprint_status=""
     # a spaced `| --- |` separator counted as an extension, so ONE extension read as
     # two and EXP4's inconclusive gate fired a cycle early, cutting an experiment
     # short instead of extending it. Fixture: exp-extend-1-spaced-separator.
+    # Positional, not lexical, for the same reason as count_entries: only the first
+    # pipe row after the header is ever eligible to be skipped as the separator;
+    # a later row that happens to look separator-shaped (e.g. a `| - | - | - |`
+    # placeholder extension) is data. Fixture: exp-extend-2-hyphen-row.
     exp_extensions_count=$(awk '{sub(/\r$/,"")} \
-        /^\*\*Extensions:\*\*/ || /^##[[:space:]]+Extensions[[:space:]]*$/{f=1;header=0;next} \
-        f && /^\|/ && $0 !~ /^\|[-|: \t]*$/{if(header){c++}else{header=1}} \
+        /^\*\*Extensions:\*\*/ || /^##[[:space:]]+Extensions[[:space:]]*$/{f=1;header=0;sep=0;next} \
+        f && /^\|/{if(!header){header=1;next}; if(!sep && $0 ~ /^\|[-|: \t]*$/){sep=1;next}; c++} \
         f && /^[^|]/{exit} \
         END{print c+0}' "$EXPERIMENT_REPORT" 2>/dev/null || echo 0)
 }
