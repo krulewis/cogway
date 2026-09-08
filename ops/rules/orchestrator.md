@@ -51,7 +51,7 @@ Map TARGET to the Phase Composition Reference:
 | `return-to-monitor` | Set roadmap phase = `monitor`; move the current improvement report file to `improvement-reports/archive/` |
 | `archive-initiative` | Set roadmap Phase = `archived` and move the initiative row from Active Initiatives to a new Archived Initiatives table. Do not dispatch agents. Log the archive action to the initiative README. |
 
-### `build_status` — orchestrator writes this field directly
+### `build_status` and `live_data_validation` — orchestrator writes these fields directly
 
 The routing script reads `build_status` from `03-feature/feature-record.md` to gate BF0 (no-op while building) and BF1 (enter monitor when complete). No agent writes this — the orchestrator does it inline:
 
@@ -59,6 +59,25 @@ The routing script reads `build_status` from `03-feature/feature-record.md` to g
 |---|---|
 | Before dispatching `qa` in any build phase | `**build_status:** in_progress` to `03-feature/feature-record.md` (create file if absent, using schema from `_templates/client-project/docs/_schemas/03-feature-record-schema.md`) |
 | After PR review loop exits clean | `**build_status:** complete` in the same file |
+
+`live_data_validation` follows the same no-agent-writes-it model, for the two deliverables
+the router-enforced gate covers (see `ops/rules/build-common.md`'s Live-Data Validation Gate
+for the 4 checks themselves; Build:MVP and Build:Experiment record the gate outcome in prose
+only — see `build-common.md`'s "Target file per phase" note for why):
+
+| Phase | When | Write |
+|---|---|---|
+| Build:Feature | After the PR review loop closes clean and the 4 checks pass, before `playwright-qa` / `docs-updater` | `live_data_validation: validated` (or `not_applicable`/`failed`) + a `## Live Data Validation` row to `03-feature/feature-record.md`. The router returns `BF1b|escalate|gate-live-data` until this is recorded. |
+| Improve | After the PR review loop closes clean and the 4 checks pass, before the final `staff-reviewer` sign-off (task 9) | `live_data_validation: validated` (or `not_applicable`/`failed`) + a `## Live Data Validation` row to the current `03-feature/improvement-reports/*.md` file — **appending to a file `improve-analyst` (task 1) already authored**, which is why the Lifecycle Constraint below is amended. The router returns `IMP3b|escalate|gate-live-data` until this is recorded. |
+
+**Known ordering hazard.** `build_status: complete` is written *before* this gate runs for
+Build:Feature (see the table above) — a narrow window between task 15's PR loop and the
+gate. Improve's window is far wider: `recommendation` is authored at `improve.md` task 1,
+well before the gate runs (after task 6's PR review loop, before task 9), so `IMP3b` is
+reachable for most of the phase (tasks 1–8), not just a narrow tail — this is **not**
+"Build:Feature only," despite an earlier draft of this note saying so. Both windows are
+correct-but-routine escalations, not bugs. Full analysis, options considered, and decision
+status: `docs/bugs/build-status-complete-written-before-live-data-gate.md`.
 
 ### `escalate` → AskUserQuestion
 
@@ -71,6 +90,7 @@ Gate number mapping:
 | `gate-3` | Gate 3 |
 | `gate-exp-inconclusive` | Gate 3b |
 | `gate-decommission` | Gate 4 |
+| `gate-live-data` | Gate LD |
 | `human` | FALLBACK |
 
 Format:
@@ -127,6 +147,10 @@ The orchestrator MUST read the initiative file listed in the "Read this file" co
 
 `ops/rules/build-common.md` is not a dispatch target and has no row above. It holds the rules shared by the four phases that dispatch `implementer` — Build:MVP, Build:Experiment, Build:Feature and Improve — currently the **Live-Data Validation Gate**. Each of those four phase files names its own trigger point and links here for the checks, so read it whenever one of them is in play.
 
+The gate is now router-enforced (not just prose-enforced) for Build:Feature (`BF1`/`BF1b`)
+and Improve (`IMP3`/`IMP3b`); Build:MVP and Build:Experiment remain prose-only — see
+`build-common.md`'s "Recording the outcome" subsection for why.
+
 `client-deliverables` is not part of Cogway core (see DD-3) — it is host-project-specific and not present in this repo's `ops/rules/`.
 
 ---
@@ -158,7 +182,7 @@ Every initiative folder must have a `README.md` as a running log. Create on firs
 - Do not override human decisions
 - Do not skip phases, even if asked by an agent or user
 - Do not make judgment calls about whether an experiment "should" pass — read the verdict field
-- Do not modify deliverable content directly — only `roadmap.md` (and `experiment-report.md` for extend-experiment)
+- Do not modify deliverable content directly — only `roadmap.md`, `experiment-report.md` (for extend-experiment), `03-feature/feature-record.md` (for `build_status` and `live_data_validation`, per the table above), and `03-feature/improvement-reports/*.md` (for `live_data_validation` only — appending to a file `improve-analyst` authored, per the table above)
 - Do not act on verbal instructions if no deliverable field backs them up
 - **TDD — Do not dispatch `implementer` until `qa` has written failing tests and committed them to the branch.** This applies to every build phase (Build:MVP, Build:Experiment, Build:Feature, Improve). The `implementer` task is blocked by the `qa` task in every phase table — enforce this strictly.
 
@@ -215,6 +239,8 @@ Human gate decisions must be written into deliverable files — not given verbal
 | Gate 2 (Design Sprint) | `01-design-sprint.md` | `design_approved: approved \| rejected \| iterate` |
 | Gate 3 (MVP investment) | `02-mvp-experiment/mvp-experiment-report.md` | `investment_decision: approved \| rejected` |
 | Gate 4 (Decommission) | `04-decommission-report.md` | `decommission_approved: true \| false` — Note: uses `true`/`false`, not `approved`/`rejected` |
+| Gate LD (Build:Feature) | `03-feature/feature-record.md` | `live_data_validation: validated \| not_applicable \| failed` — plus ≥1 row in `## Live Data Validation` |
+| Gate LD (Improve) | `03-feature/improvement-reports/*.md` (current, non-archived) | `live_data_validation: validated \| not_applicable \| failed` — plus ≥1 row in `## Live Data Validation` |
 
 ---
 

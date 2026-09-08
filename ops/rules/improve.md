@@ -31,6 +31,24 @@ Create all 9 tasks upfront. After `improve-analyst` returns, check `mini_design_
 
 Full checklist (4 checks, shared across all build phases): `ops/rules/build-common.md`. Improve dispatches `implementer` exactly the way the build phases do, so an improvement that touches or adds a pipeline, capture script, export or scheduled job is just as exposed to "it ran and looked fine but produced nothing" as a fresh build — an improvement is still new code the first time it runs for real.
 
+**Recording the outcome:** write `live_data_validation: validated | not_applicable |
+failed` plus a `## Live Data Validation` table row (see `build-common.md`) into the
+current `03-feature/improvement-reports/*.md` file before this run ends — the
+orchestrator appends to the file `improve-analyst` (task 1) already authored (see the
+amended Lifecycle Constraint in `ops/rules/orchestrator.md`). The router returns
+`IMP3b|escalate|gate-live-data` — not `IMP3` — until this is recorded, even once
+`recommendation` is set to `stable` or `continue_improve`.
+
+**Known ordering hazard:** `recommendation` is authored at task 1 of this phase's own task
+table — well before this gate runs (after task 6's PR review loop, before task 9). Any
+router call between those two points — tasks 2 through 8, effectively most of the phase —
+returns `IMP3b|escalate|gate-live-data`, correctly but routinely. This window is wider
+than Build:Feature's equivalent (a narrow gap after its PR loop only); see
+`docs/bugs/build-status-complete-written-before-live-data-gate.md` for the full analysis
+(written for the Build:Feature case, applies here with the wider window noted above) and
+`build-common.md`'s escalation message for the third resolution branch this window
+requires.
+
 ---
 
 ## Human-in-the-Loop Blockers (Improve)

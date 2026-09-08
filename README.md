@@ -43,10 +43,10 @@ lint, a cross-file consistency check, the schema migration, and the agent-roster
 generator, plus a self-test for the secret scanner:
 
 ```bash
-bash ops/tests/route-initiative-test.sh          # 49 passed, 0 failed
-bash ops/tests/check-deliverable-fields-test.sh  # 12 passed, 0 failed
-bash ops/tests/field-map-consistency-test.sh     # 11 passed, 0 failed
-bash ops/tests/schema-migration-test.sh          # 12 passed, 0 failed
+bash ops/tests/route-initiative-test.sh          # PLACEHOLDER passed, 0 failed
+bash ops/tests/check-deliverable-fields-test.sh  # PLACEHOLDER passed, 0 failed
+bash ops/tests/field-map-consistency-test.sh     # PLACEHOLDER passed, 0 failed
+bash ops/tests/schema-migration-test.sh          # PLACEHOLDER passed, 0 failed
 bash agents/generate.sh && bash ops/tests/generate-test.sh
 bash scripts/secret-scan-test.sh
 ```
@@ -149,20 +149,22 @@ graph TD
     EXP3["EXP3: verdict = extend, extensions < 2"] -->|update| EXTENDEXP[extend-experiment]
     EXP4["EXP4: verdict = extend, extensions >= 2"] -->|escalate| GATE3B[gate-exp-inconclusive]
     BF0["BF0: feature record exists, build in_progress"] -->|no-op| NOOP2[stay in build-feature]
-    BF1["BF1: build complete, baseline+thresholds set, no signals/improvements yet"] -->|update| MONITOR[begin-monitor]
+    BF1["BF1: build complete, baseline+thresholds set, live-data gate recorded, no signals/improvements yet"] -->|update| MONITOR[begin-monitor]
+    BF1b["BF1b: BF1 conditions met, live-data gate NOT recorded"] -->|escalate| GATELD[gate-live-data]
     MON1["MON1: signal = trigger_improve_urgent"] -->|dispatch| IMPROVEURGENT[improve-urgent]
     MON2["MON2: signal = trigger_improve"] -->|dispatch| IMPROVE[improve phase]
     MON3["MON3: signal = stable"] -->|no-op| NOOP3[stay in monitor]
     IMP1["IMP1: mini_design_sprint_triggered, status pending"] -->|dispatch| MINISPRINT[mini-design-sprint]
     IMP2["IMP2: improvement recommends flag_decommission"] -->|dispatch| DECANALYST3[decommission-analyst]
-    IMP3["IMP3: recommendation = stable or continue_improve"] -->|update| RETURNMONITOR[return-to-monitor]
+    IMP3["IMP3: recommendation = stable or continue_improve, live-data gate recorded"] -->|update| RETURNMONITOR[return-to-monitor]
+    IMP3b["IMP3b: recommendation set, live-data gate NOT recorded"] -->|escalate| GATELD
     DEC1["DEC1: decommission report exists, unapproved"] -->|escalate| GATE4[gate-decommission]
     DEC2["DEC2: decommission approved"] -->|dispatch| DECEXEC[decommission-executor]
     DEC3["DEC3: decommission rejected"] -->|update| RETURNMONITOR2[return-to-monitor]
     FALLBACK["FALLBACK: no rule matched"] -->|escalate| HUMAN[human]
 ```
 
-The test suite also runs 6 legacy bold-markdown fixtures (`*-legacy-bold`) proving
+The test suite also runs 7 legacy bold-markdown fixtures (`*-legacy-bold`) proving
 the router still parses the pre-frontmatter `**field:** value` format, plus one
 `frontmatter-inline-comment` fixture exercising the comment-trim edge case
 documented in `ops/rules/orchestrator.md`, plus two `exp-extend-*-heading`
@@ -176,7 +178,10 @@ plus two `*-hyphen-*` fixtures proving the separator/data distinction is
 positional (only the first pipe row after a header can be skipped as the
 separator) rather than lexical — a genuine data row whose cells are all `-`
 placeholders is counted, not silently dropped as if it were a second delimiter
-row — 49 assertions total, all in
+row — plus 11 live-data-validation-gate fixtures (`build-complete-gate-*`,
+`improve-stable-gate-*`) proving `BF1b`/`IMP3b` fire when `live_data_validation`
+is unset, invalid, or claimed with zero evidence rows — PLACEHOLDER assertions
+total, all in
 `ops/tests/route-initiative-test.sh`.
 
 ## Architecture
@@ -247,3 +252,8 @@ Open items — tracked in `docs/bugs/` where there is detail worth writing down:
   Codex CLI install (see the `VERIFY-AT-BUILD-TIME` markers in generated
   `.codex/agents/*.toml`).
 - Adapters beyond Claude Code and Codex are not yet built.
+- Post-adoption audit: once ~5 real initiatives have recorded `live_data_validation`,
+  read those values against their PRs and confirm they're honest, per
+  `ops/rules/build-common.md`'s "Recording the outcome" subsection (the central-limit
+  note: a router can verify a claim was made, not that it's true). Not yet done — no
+  client project has used this gate long enough.

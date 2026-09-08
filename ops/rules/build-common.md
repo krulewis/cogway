@@ -96,3 +96,92 @@ unambiguously exercise the fixed code path:
 
 Confirm the log shows real work happened, force a clean test if the first re-run was a no-op,
 then read the real output.
+
+### Recording the outcome
+
+Write the result into the deliverable the gate protects — a claim with no evidence is
+indistinguishable from a claim never made, and the router requires both:
+
+- **Field:** `live_data_validation: validated | not_applicable | failed` (blank until the
+  gate runs; blank is allowed pre-gate, same as every other gate field).
+- **Table:** a `## Live Data Validation` heading with **at least one data row**, required
+  for *both* `validated` and `not_applicable` — a claim with zero rows does not satisfy
+  the gate, even if the scalar is set to a passing value.
+
+| Column | Content |
+|---|---|
+| Pipeline | The scheduled job, capture script, export, digest, or report this row covers |
+| Manual trigger | The exact command/flag/`workflow_dispatch` input used to invoke it on demand |
+| First live run | Date/time and a concrete result (an item count, not just "ran") |
+| Write destination | Where it wrote, and confirmation the write landed |
+| Content read | What was opened and read, and whether it was correct |
+
+**Vacuous-build row.** If the build added no scheduled or triggered pipeline, capture
+script, export, digest, or report, write `not_applicable` and exactly one row of this
+shape, naming the PR scanned:
+
+| Pipeline | Manual trigger | First live run | Write destination | Content read |
+|---|---|---|---|---|
+| (none) | — | — | — | no cron, `workflow_dispatch`, scheduled job, capture script or export added in PR #NNN |
+
+**What counts as "a pipeline" (resolves ambiguity toward `validated`, not
+`not_applicable`):** a cron/schedule, a `workflow_dispatch` input, a scheduled job, a
+capture script, an export, a digest, a transcript generator, or a report generator. **If
+uncertain whether something counts, the default is to run it and record `validated` — not
+to reach for `not_applicable`.** `not_applicable` is for builds that genuinely produced
+none of the above, not for builds where checking felt like more effort than skipping.
+
+**Target file per phase:**
+
+| Phase | File | Routed? |
+|---|---|---|
+| Build:Feature | `03-feature/feature-record.md` | Yes — `route-initiative.sh` BF1/BF1b |
+| Improve | `03-feature/improvement-reports/*.md` (current report) | Yes — `route-initiative.sh` IMP3/IMP3b |
+
+**Build:MVP and Build:Experiment record the gate outcome in prose in their existing report
+body and do not use the `live_data_validation` field or the `## Live Data Validation`
+heading.** `window_start_date` is written by `experiment-designer` and read by no router
+rule (`route-initiative.sh` never references it — it appears only in
+`ops/schemas/02-experiment-report-schema.md` and agent prose), so there is no routed
+"window opens" transition to hang a field check on. Inventing one is a separate
+initiative — see `build-mvp.md` / `build-experiment.md` for the one-sentence pointer each
+carries. **Do not infer symmetric enforcement across all four phases from this section**
+— only Build:Feature and Improve are router-enforced today.
+
+**The central limit, stated plainly — do not soften this anywhere:**
+
+> This gate converts "silently skipped" into "explicitly claimed." An agent that FORGETS
+> is blocked. An agent that LIES is not.
+
+A router reads a string and counts table rows; it cannot execute the pipeline, inspect the
+output, or verify that a timestamp corresponds to a real run. `validated` with a
+fabricated evidence row routes identically to an honest one. The evidence table raises the
+cost of lying (five independently falsifiable strings instead of one flipped enum) and
+leaves an artifact a human or reviewer can check against the PR diff — it does not close
+the gap.
+
+### Escalation message (BF1b / IMP3b)
+
+When `route-initiative.sh` returns `BF1b|escalate|gate-live-data` or
+`IMP3b|escalate|gate-live-data`, the orchestrator's `AskUserQuestion` must state all three
+resolutions explicitly, using the generic Format block in `ops/rules/orchestrator.md`'s
+`escalate` section, with this **Decision required** text:
+
+> `live_data_validation` in `<path>` must be set to `validated`, `not_applicable`, or
+> `failed`, **and** the `## Live Data Validation` table must have at least one row. If the
+> gate already ran, record it. If this build adds no scheduled or triggered pipeline,
+> write `not_applicable` and a `(none)` row naming the PR you checked. **If the phase has
+> not yet reached the gate, this escalation is premature — resume the phase; do not write
+> a value to clear it.**
+
+`<path>` is `03-feature/feature-record.md` for `BF1b`; the current
+`03-feature/improvement-reports/*.md` file for `IMP3b`. The rule name (`BF1b` vs `IMP3b`)
+disambiguates which, so the message does not need to restate it.
+
+The third resolution above closes a gap that would otherwise train people to pick
+whichever answer is fastest: Improve's escalation window (tasks 1–8, see
+`orchestrator.md`'s `build_status`/`live_data_validation` section) is wide enough that a
+mid-phase router call is the common case, not the exception, and a two-resolution message
+offers no honest answer for it — the path of least resistance would be to write a value
+just to clear the escalation, which is the exact rubber-stamping this gate exists to
+prevent.
