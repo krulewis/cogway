@@ -95,6 +95,7 @@ assert_rule "exp-extend-1-crlf"             "EXP3|update|extend-experiment"
 assert_rule "build-complete-crlf-empty-metrics" "FALLBACK|escalate|human"
 assert_crlf "exp-extend-1-crlf/02-experiment/experiment-report.md"
 assert_crlf "build-complete-crlf-empty-metrics/03-feature/feature-record.md"
+assert_crlf "build-complete-gate-crlf-no-rows/03-feature/feature-record.md"
 assert_rule "build-in-progress"             "BF0|no-op|"
 # Proves BF1b does not over-catch: it still requires populated baseline/threshold
 # tables, so a malformed record and an ungated-but-otherwise-complete record stay
