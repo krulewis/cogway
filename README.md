@@ -43,7 +43,7 @@ lint, a cross-file consistency check, the schema migration, and the agent-roster
 generator, plus a self-test for the secret scanner:
 
 ```bash
-bash ops/tests/route-initiative-test.sh          # 40 passed, 0 failed
+bash ops/tests/route-initiative-test.sh          # 43 passed, 0 failed
 bash ops/tests/check-deliverable-fields-test.sh  # 12 passed, 0 failed
 bash ops/tests/field-map-consistency-test.sh     # 11 passed, 0 failed
 bash ops/tests/schema-migration-test.sh          # 12 passed, 0 failed
@@ -169,7 +169,8 @@ documented in `ops/rules/orchestrator.md`, plus two `exp-extend-*-heading`
 fixtures written with a `## Extensions` heading instead of the schema's
 `**Extensions:**` bold marker — the router accepts both, and before it did, a
 heading-form report counted as zero extensions and EXP4's human gate was
-unreachable — 40 assertions total, all in
+unreachable — plus three `*-spaced-separator*` fixtures covering markdown
+separator rows written `| --- |` rather than `|---|` — 43 assertions total, all in
 `ops/tests/route-initiative-test.sh`.
 
 ## Architecture
