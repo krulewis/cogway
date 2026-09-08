@@ -11,6 +11,20 @@ FIXTURES="$SCRIPT_DIR/fixtures"
 PASS=0
 FAIL=0
 
+# A fixture meant to encode CRLF must still contain CR at run time. .gitattributes
+# preserves those bytes, but if it is edited, a checkout normalises them, or someone
+# runs dos2unix, the fixture silently becomes a duplicate of its LF twin and asserts
+# nothing — normalising them leaves the suite fully green even with the CR handling
+# removed. This check, not .gitattributes, is what keeps them load-bearing.
+assert_crlf() {
+    local relpath="$1"
+    if grep -q $'\r' "$FIXTURES/$relpath" 2>/dev/null; then
+        echo "PASS: $relpath still contains CR"; PASS=$((PASS + 1))
+    else
+        echo "FAIL: $relpath has NO CR — normalised, no longer tests CRLF handling"; FAIL=$((FAIL + 1))
+    fi
+}
+
 assert_rule() {
     local fixture="$1" expected="$2"
     local actual
@@ -59,6 +73,13 @@ assert_rule "exp-extend-1-heading"          "EXP3|update|extend-experiment"
 # EXP4's inconclusive gate fired a full cycle early — cutting an experiment short
 # rather than extending it.
 assert_rule "exp-extend-1-spaced-separator" "EXP3|update|extend-experiment"
+# Same separator test, defeated by a trailing \r. On a CRLF experiment report ONE
+# extension counted as two and EXP4 fired a cycle early; on a CRLF feature record an
+# EMPTY metrics table satisfied BF1's populated-metrics guard.
+assert_rule "exp-extend-1-crlf"             "EXP3|update|extend-experiment"
+assert_rule "build-complete-crlf-empty-metrics" "FALLBACK|escalate|human"
+assert_crlf "exp-extend-1-crlf/02-experiment/experiment-report.md"
+assert_crlf "build-complete-crlf-empty-metrics/03-feature/feature-record.md"
 assert_rule "build-in-progress"             "BF0|no-op|"
 assert_rule "build-complete-no-metrics"     "FALLBACK|escalate|human"
 assert_rule "build-complete-with-metrics"   "BF1|update|begin-monitor"
