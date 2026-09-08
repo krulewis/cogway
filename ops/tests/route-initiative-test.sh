@@ -54,9 +54,22 @@ assert_rule "exp-extend-2"                  "EXP4|escalate|gate-exp-inconclusive
 # is what proves the header row is still being skipped rather than counted.
 assert_rule "exp-extend-2-heading"          "EXP4|escalate|gate-exp-inconclusive"
 assert_rule "exp-extend-1-heading"          "EXP3|update|extend-experiment"
+# The Extensions counter had the same separator flaw as count_entries: a spaced
+# `| --- |` separator counted as an extension, so ONE extension read as two and
+# EXP4's inconclusive gate fired a full cycle early — cutting an experiment short
+# rather than extending it.
+assert_rule "exp-extend-1-spaced-separator" "EXP3|update|extend-experiment"
 assert_rule "build-in-progress"             "BF0|no-op|"
 assert_rule "build-complete-no-metrics"     "FALLBACK|escalate|human"
 assert_rule "build-complete-with-metrics"   "BF1|update|begin-monitor"
+# Markdown separator rows must never count as data rows, in either spelling.
+# `|---|` was already skipped; the spaced form `| --- |` (what Prettier and most
+# formatters emit) was counted as a row, so a feature record with EMPTY metrics
+# tables satisfied BF1's populated-metrics guard and advanced straight to monitor.
+# The -empty case is the bug; the -populated case is the contrast that proves the
+# fix skips the separator rather than skipping the whole table.
+assert_rule "build-complete-spaced-separator-empty"     "FALLBACK|escalate|human"
+assert_rule "build-complete-spaced-separator-populated" "BF1|update|begin-monitor"
 assert_rule "monitor-urgent"                "MON1|dispatch|improve-urgent"
 assert_rule "monitor-improve"               "MON2|dispatch|improve"
 assert_rule "monitor-stable"                "MON3|no-op|"

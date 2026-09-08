@@ -49,6 +49,14 @@ field() {
 # ── Helper: count data rows in a markdown table under a ## Section heading ────
 # key is snake_case (e.g. "baseline_metrics"). Converts to title case heading.
 # Counts pipe-delimited rows that are not the header or separator lines.
+#
+# A separator row is any pipe-led line whose cells hold nothing but `-`, `:`,
+# pipes and whitespace — this matches BOTH `|---|---|` and the spaced `| --- | --- |`
+# that Prettier and most markdown formatters emit. Matching only the compact form
+# (the old `/^\|[^-]/`) counted a spaced separator as a data row, which meant an
+# EMPTY metrics table satisfied BF1's populated-metrics guard and sent the
+# initiative straight to monitor with no metrics at all. Fixtures:
+# build-complete-spaced-separator-{empty,populated}.
 count_entries() {
     local file="$1" key="$2"
     local heading
@@ -56,7 +64,7 @@ count_entries() {
     awk -v heading="$heading" \
         '$0 ~ "^## " heading {f=1;header=0;next} \
          f && /^## /{exit} \
-         f && /^\|[^-]/{if(header){c++}else{header=1}} \
+         f && /^\|/ && $0 !~ /^\|[-|: \t]*$/{if(header){c++}else{header=1}} \
          END{print c+0}' \
         "$file" 2>/dev/null
 }
@@ -100,8 +108,12 @@ improvement_mini_sprint_status=""
     # and a marker this counter does not recognise reads as zero extensions — which pins
     # the experiment on EXP3 (extend) forever and makes EXP4's gate-exp-inconclusive
     # human gate unreachable. Fixtures exist for both forms; keep it that way.
+    # Separator-row test is the same one count_entries uses, and for the same reason:
+    # a spaced `| --- |` separator counted as an extension, so ONE extension read as
+    # two and EXP4's inconclusive gate fired a cycle early, cutting an experiment
+    # short instead of extending it. Fixture: exp-extend-1-spaced-separator.
     exp_extensions_count=$(awk '/^\*\*Extensions:\*\*/ || /^##[[:space:]]+Extensions[[:space:]]*$/{f=1;header=0;next} \
-        f && /^\|[^-]/{if(header){c++}else{header=1}} \
+        f && /^\|/ && $0 !~ /^\|[-|: \t]*$/{if(header){c++}else{header=1}} \
         f && /^[^|]/{exit} \
         END{print c+0}' "$EXPERIMENT_REPORT" 2>/dev/null || echo 0)
 }
