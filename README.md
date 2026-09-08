@@ -43,10 +43,10 @@ lint, a cross-file consistency check, the schema migration, and the agent-roster
 generator, plus a self-test for the secret scanner:
 
 ```bash
-bash ops/tests/route-initiative-test.sh          # PLACEHOLDER passed, 0 failed
-bash ops/tests/check-deliverable-fields-test.sh  # PLACEHOLDER passed, 0 failed
-bash ops/tests/field-map-consistency-test.sh     # PLACEHOLDER passed, 0 failed
-bash ops/tests/schema-migration-test.sh          # PLACEHOLDER passed, 0 failed
+bash ops/tests/route-initiative-test.sh          # 64 passed, 0 failed
+bash ops/tests/check-deliverable-fields-test.sh  # 23 passed, 0 failed
+bash ops/tests/field-map-consistency-test.sh     # 14 passed, 0 failed
+bash ops/tests/schema-migration-test.sh          # 16 passed, 0 failed
 bash agents/generate.sh && bash ops/tests/generate-test.sh
 bash scripts/secret-scan-test.sh
 ```
@@ -180,7 +180,7 @@ separator) rather than lexical — a genuine data row whose cells are all `-`
 placeholders is counted, not silently dropped as if it were a second delimiter
 row — plus 14 live-data-validation-gate fixtures (`build-complete-gate-*`,
 `improve-stable-gate-*`) proving `BF1b`/`IMP3b` fire when `live_data_validation`
-is unset, invalid, or claimed with zero evidence rows — PLACEHOLDER assertions
+is unset, invalid, or claimed with zero evidence rows — 64 assertions
 total, all in
 `ops/tests/route-initiative-test.sh`.
 
