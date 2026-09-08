@@ -134,7 +134,7 @@ if [ "$_ldv_val" = "validated" ] || [ "$_ldv_val" = "not_applicable" ]; then
     echo "  FAIL  live_data_validation = '$_ldv_val' — no rows found under '## Live Data Validation'. Both 'validated' and 'not_applicable' require at least one row (for not_applicable, write a single '| (none) | — | — | — | <what you scanned, naming the PR> |' row)."
     fail=1
   else
-    echo "  OK    live_data_validation = $_ldv_val"
+    echo "  OK    live_data_validation evidence = $_ldv_rows row(s)"
   fi
 fi
 

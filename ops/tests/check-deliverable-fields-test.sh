@@ -78,7 +78,15 @@ assert_exit "$FIXTURES_LINT/feature-record-failed-no-rows/feature-record.md" 0
 # positive fixtures pass their OK line from the evidence-table block, which is
 # independent of `specs`, so without this the spec could be deleted from the
 # improvement-reports branch and nothing would go red.
-assert_exit "$FIXTURES_LINT/improvement-reports/2026-06-02-missing-ldv.md" 1
+assert_exit_and_contains "$FIXTURES_LINT/improvement-reports/2026-06-02-missing-ldv.md" 1 "live_data_validation"
+
+# CRLF feature record claiming `validated` over a header+separator-only table.
+# The lint's count_entries() copy must strip \r before testing for a separator,
+# exactly as the router's does — otherwise the separator counts as a data row and
+# the lint says PASS while the router says BF1b. That split is the precise thing
+# field-map-consistency-test.sh exists to prevent, and no CRLF file existed under
+# fixtures-lint/ to catch it.
+assert_exit "$FIXTURES_LINT/feature-record-crlf-no-rows/feature-record.md" 1
 
 # improvement-reports directory-based dispatch (recommendation-gated, mini_* optional)
 assert_exit_and_contains "$FIXTURES_LINT/improvement-reports/2026-01-01-report.md" 0 "recommendation = continue_improve"
