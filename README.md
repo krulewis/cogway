@@ -178,7 +178,7 @@ plus two `*-hyphen-*` fixtures proving the separator/data distinction is
 positional (only the first pipe row after a header can be skipped as the
 separator) rather than lexical — a genuine data row whose cells are all `-`
 placeholders is counted, not silently dropped as if it were a second delimiter
-row — plus 12 live-data-validation-gate fixtures (`build-complete-gate-*`,
+row — plus 14 live-data-validation-gate fixtures (`build-complete-gate-*`,
 `improve-stable-gate-*`) proving `BF1b`/`IMP3b` fire when `live_data_validation`
 is unset, invalid, or claimed with zero evidence rows — PLACEHOLDER assertions
 total, all in

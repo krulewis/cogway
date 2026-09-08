@@ -157,6 +157,12 @@ assert_rule "improve-stable-gate-absent"          "IMP3b|escalate|gate-live-data
 # ungated. The ordering predates this change and is NOT altered here — this pins the
 # real behaviour so the docs and the router cannot drift apart again.
 assert_rule "improve-stable-gate-absent-with-signal" "MON3|no-op|"
+# IMP1 is checked before IMP3/IMP3b too, so a pending mini design sprint shadows
+# the gate the same way MON3 does: recommendation is already `stable` and
+# live_data_validation is absent, but the router returns IMP1 (dispatch the mini
+# sprint) rather than IMP3b (escalate the gate). This pins the second precedence
+# caveat documented in improve.md.
+assert_rule "improve-stable-gate-absent-with-mini-sprint" "IMP1|dispatch|mini-design-sprint"
 assert_rule "decommission-pending"          "DEC1|escalate|gate-decommission"
 assert_rule "decommission-approved"         "DEC2|dispatch|decommission-executor"
 assert_rule "decommission-rejected"         "DEC3|update|return-to-monitor"

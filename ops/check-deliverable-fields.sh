@@ -52,8 +52,8 @@ count_lines() { grep -cE "^\*\*${2}:\*\*|^${2}:" "$1" 2>/dev/null; }
 # Needed here so the lint can assert live_data_validation's evidence table is non-empty
 # at WRITE time, matching what the router requires at ROUTE time (see R6 in the
 # architecture decision — this copy and the router's are two places this logic can
-# drift; the mirror-comment convention and
-# the feature-record-spaced-separator fixture is the guard against a *stale* copy).
+# drift; the mirror-comment convention, plus the `feature-record-spaced-separator` and
+# `feature-record-crlf-no-rows` fixtures, are the guard against a *stale* copy).
 count_entries() {
   local file="$1" key="$2"
   local heading
