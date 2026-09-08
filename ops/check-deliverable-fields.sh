@@ -42,13 +42,18 @@ field() {
 count_lines() { grep -cE "^\*\*${2}:\*\*|^${2}:" "$1" 2>/dev/null; }
 
 # count_entries() — mirrors route-initiative.sh's count_entries() exactly (verified
-# character-for-character against ops/route-initiative.sh as of commit 1456dc1, which
-# fixed a spaced-separator-row miscount bug there — see
+# character-for-character against ops/route-initiative.sh as of commit 270184a, which
+# made the separator/data distinction POSITIONAL rather than lexical — see
 # docs/bugs/build-status-complete-written-before-live-data-gate.md for unrelated context
 # on that same file's known hazards, and the test suite's
 # feature-record-spaced-separator fixture for the mutation this exact regex closes).
 # Counts data rows under a "## <Title Case>" heading derived from a snake_case key,
 # skipping the markdown separator row regardless of spacing (`|---|` or `| --- |`).
+# A markdown table has exactly one delimiter row, immediately after the header, so
+# only the first pipe row after the header is ever eligible to be skipped as the
+# separator (and even then only if it lexically looks like one); every pipe row
+# after that is data, even if it also happens to look separator-shaped (e.g. a
+# `| - | - | - |` "not captured yet" placeholder).
 # Needed here so the lint can assert live_data_validation's evidence table is non-empty
 # at WRITE time, matching what the router requires at ROUTE time (see R6 in the
 # architecture decision — this copy and the router's are two places this logic can
@@ -60,9 +65,9 @@ count_entries() {
   heading=$(echo "$key" | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')
   awk -v heading="$heading" \
       '{sub(/\r$/,"")} \
-       $0 ~ "^## " heading {f=1;header=0;next} \
+       $0 ~ "^## " heading {f=1;header=0;sep=0;next} \
        f && /^## /{exit} \
-       f && /^\|/ && $0 !~ /^\|[-|: \t]*$/{if(header){c++}else{header=1}} \
+       f && /^\|/{if(!header){header=1;next}; if(!sep && $0 ~ /^\|[-|: \t]*$/){sep=1;next}; c++} \
        END{print c+0}' \
       "$file" 2>/dev/null
 }
