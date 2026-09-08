@@ -238,7 +238,11 @@ its test suite. A change to `ops/route-initiative.sh` isn't done until
 by reading `AGENTS.md` and `skills/orchestrator/SKILL.md`, then `ops/rules/` for
 the phase you're touching.
 
-Open items:
+Open items — tracked in `docs/bugs/` where there is detail worth writing down:
+- `build_status: complete` is written before the Live-Data Validation Gate runs, so a
+  session ending in that window produces a routine `BF1b` escalation on a well-run
+  initiative. Correct, but benign escalations erode gate attention. →
+  [detail](docs/bugs/build-status-complete-written-before-live-data-gate.md)
 - Codex model-name and tools-grant-key mappings need verification against a real
   Codex CLI install (see the `VERIFY-AT-BUILD-TIME` markers in generated
   `.codex/agents/*.toml`).
