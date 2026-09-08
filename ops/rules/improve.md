@@ -39,6 +39,13 @@ amended Lifecycle Constraint in `ops/rules/orchestrator.md`). The router returns
 `IMP3b|escalate|gate-live-data` — not `IMP3` — until this is recorded, even once
 `recommendation` is set to `stable` or `continue_improve`.
 
+**One precedence caveat.** `MON3` is checked before `IMP3`/`IMP3b`, so if a signal
+report recommending `stable` is present, the router returns `MON3|no-op|` and the gate
+never fires — the improvement simply sits, ungated, and a scan reports nothing to do.
+This ordering predates the gate and is not changed here; fixture
+`improve-stable-gate-absent-with-signal` pins it. If you are working an improvement to
+completion, do not rely on the router to remind you about the gate.
+
 **Known ordering hazard:** `recommendation` is authored at task 1 of this phase's own task
 table — well before this gate runs (after task 6's PR review loop, before task 9). Any
 router call between those two points — tasks 2 through 8, effectively most of the phase —

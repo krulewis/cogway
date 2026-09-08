@@ -87,6 +87,14 @@ assert_exit_and_contains "$FIXTURES_LINT/improvement-reports/2026-06-02-missing-
 # field-map-consistency-test.sh exists to prevent, and no CRLF file existed under
 # fixtures-lint/ to catch it.
 assert_exit "$FIXTURES_LINT/feature-record-crlf-no-rows/feature-record.md" 1
+# Same guard the router suite carries. Without it, normalising this fixture AND
+# stripping the lint's CR handling both pass — the fixture quietly becomes a
+# duplicate of an LF one and the thing it guards goes untested.
+if grep -q $'\r' "$FIXTURES_LINT/feature-record-crlf-no-rows/feature-record.md" 2>/dev/null; then
+  echo "PASS: feature-record-crlf-no-rows still contains CR"; PASS=$((PASS + 1))
+else
+  echo "FAIL: feature-record-crlf-no-rows has NO CR — normalised, no longer tests CRLF handling"; FAIL=$((FAIL + 1))
+fi
 
 # improvement-reports directory-based dispatch (recommendation-gated, mini_* optional)
 assert_exit_and_contains "$FIXTURES_LINT/improvement-reports/2026-01-01-report.md" 0 "recommendation = continue_improve"
