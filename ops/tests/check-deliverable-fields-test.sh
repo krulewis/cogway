@@ -81,6 +81,18 @@ assert_exit_and_contains "$FIXTURES_LINT/improvement-reports/2026-05-07-architec
 # be treated as a gated report at all
 assert_exit "$FIXTURES_LINT/improvement-reports/2026-05-07-requirements.md" 0
 
+# feature-record.md lint fixture set (basename dispatch — new for the live-data gate)
+assert_exit_and_contains "$FIXTURES_LINT/feature-record-missing/feature-record.md" 1 "live_data_validation — field line absent"
+assert_exit "$FIXTURES_LINT/feature-record-blank/feature-record.md" 0
+assert_exit_and_contains "$FIXTURES_LINT/feature-record-claim-no-rows/feature-record.md" 1 "no rows found under '## Live Data Validation'"
+assert_exit "$FIXTURES_LINT/feature-record-invalid/feature-record.md" 1
+assert_exit_and_contains "$FIXTURES_LINT/feature-record-validated/feature-record.md" 0 "live_data_validation = validated"
+assert_exit "$FIXTURES_LINT/feature-record-spaced-separator/feature-record.md" 1
+
+# improvement-reports directory-dispatch positive fixture (proves the evidence check on
+# the OTHER dispatch branch, not just the feature-record.md basename branch)
+assert_exit_and_contains "$FIXTURES_LINT/improvement-reports/2026-06-01-ldv-report.md" 0 "live_data_validation = not_applicable"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

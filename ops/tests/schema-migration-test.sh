@@ -40,10 +40,10 @@ EXPECTED_TABLE='00-discovery-spec-schema.md|discovery_approved
 01-design-sprint-schema.md|design_approved,initiative_type
 02-mvp-experiment-report-schema.md|overall_verdict,investment_decision
 02-experiment-report-schema.md|overall_verdict
-03-feature-record-schema.md|build_status
+03-feature-record-schema.md|build_status,live_data_validation
 decommission-report-schema.md|decommission_approved
 signal-report-schema.md|recommendation
-improvement-report-schema.md|recommendation,mini_design_sprint_triggered,mini_sprint_status'
+improvement-report-schema.md|recommendation,mini_design_sprint_triggered,mini_sprint_status,live_data_validation'
 
 while IFS='|' read -r schema_file keys; do
     [ -z "$schema_file" ] && continue
@@ -52,6 +52,25 @@ while IFS='|' read -r schema_file keys; do
         assert_key_in_fence "$SCHEMAS_DIR/$schema_file" "$key" "$schema_file → $key"
     done
 done <<< "$EXPECTED_TABLE"
+
+# Asserts that a "## <heading>" markdown heading appears anywhere in <file>'s body
+# (not restricted to the frontmatter fence — the Live Data Validation section is a
+# body section, not a frontmatter key).
+assert_heading_in_body() {
+    local file="$1" heading="$2" label="$3"
+    if [ ! -f "$file" ]; then
+        fail "$label — file not found: $file"
+        return
+    fi
+    if grep -qF "## ${heading}" "$file"; then
+        pass "$label — '## ${heading}' heading found"
+    else
+        fail "$label — '## ${heading}' heading NOT found in file body"
+    fi
+}
+
+assert_heading_in_body "$SCHEMAS_DIR/03-feature-record-schema.md" "Live Data Validation" "03-feature-record-schema.md → ## Live Data Validation heading"
+assert_heading_in_body "$SCHEMAS_DIR/improvement-report-schema.md" "Live Data Validation" "improvement-report-schema.md → ## Live Data Validation heading"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

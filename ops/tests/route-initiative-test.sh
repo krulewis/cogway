@@ -45,7 +45,8 @@ assert_rule() {
     fi
 }
 
-# ── Rule coverage matrix — frontmatter-primary (31 branches: D0 through DEC3 + FALLBACK/EXP0) ──
+# ── Rule coverage matrix — frontmatter-primary (31 branches: D0 through DEC3 + FALLBACK/EXP0,
+# including BF1b/IMP3b) ──
 assert_rule "empty-initiative"              "D0|dispatch|discovery"
 assert_rule "discovery-pending"             "D1|escalate|gate-1"
 assert_rule "discovery-rejected"            "D1b|update|archive-initiative"
@@ -95,8 +96,22 @@ assert_rule "build-complete-crlf-empty-metrics" "FALLBACK|escalate|human"
 assert_crlf "exp-extend-1-crlf/02-experiment/experiment-report.md"
 assert_crlf "build-complete-crlf-empty-metrics/03-feature/feature-record.md"
 assert_rule "build-in-progress"             "BF0|no-op|"
+# Proves BF1b does not over-catch: it still requires populated baseline/threshold
+# tables, so a malformed record and an ungated-but-otherwise-complete record stay
+# distinguishable.
 assert_rule "build-complete-no-metrics"     "FALLBACK|escalate|human"
 assert_rule "build-complete-with-metrics"   "BF1|update|begin-monitor"
+# ── Live-Data Validation Gate (Gate LD) — BF1/BF1b family ──────────────────────
+# BF1 requires live_data_validation to be a passing claim (validated/not_applicable)
+# backed by >=1 evidence row under "## Live Data Validation"; anything else (blank,
+# absent, a non-passing value, or a passing scalar with no evidence row) escalates
+# to BF1b instead of silently advancing to begin-monitor.
+assert_rule "build-complete-gate-not-applicable" "BF1|update|begin-monitor"
+assert_rule "build-complete-gate-blank"          "BF1b|escalate|gate-live-data"
+assert_rule "build-complete-gate-absent"         "BF1b|escalate|gate-live-data"
+assert_rule "build-complete-gate-claim-no-rows"  "BF1b|escalate|gate-live-data"
+assert_rule "build-complete-gate-failed"         "BF1b|escalate|gate-live-data"
+assert_rule "build-complete-gate-legacy-bold"    "BF1|update|begin-monitor"
 # Markdown separator rows must never count as data rows, in either spelling.
 # `|---|` was already skipped; the spaced form `| --- |` (what Prettier and most
 # formatters emit) was counted as a row, so a feature record with EMPTY metrics
@@ -118,13 +133,24 @@ assert_rule "monitor-improve"               "MON2|dispatch|improve"
 assert_rule "monitor-stable"                "MON3|no-op|"
 assert_rule "improve-mini-sprint-pending"   "IMP1|dispatch|mini-design-sprint"
 assert_rule "improve-mini-sprint-complete"  "IMP3|update|return-to-monitor"
+# Proves IMP2 precedes the gate: decommission-bound improvements are never
+# required to record live_data_validation, because flag_decommission is checked
+# (and wins) before IMP3/IMP3b.
 assert_rule "improve-decommission"          "IMP2|dispatch|decommission-analyst"
 assert_rule "improve-stable"                "IMP3|update|return-to-monitor"
+# ── Live-Data Validation Gate (Gate LD) — IMP3/IMP3b family ────────────────────
+# Mirrors the BF1/BF1b family above, on the improvement-report side.
+assert_rule "improve-stable-gate-not-applicable"  "IMP3|update|return-to-monitor"
+assert_rule "improve-stable-gate-blank"           "IMP3b|escalate|gate-live-data"
+assert_rule "improve-stable-gate-claim-no-rows"   "IMP3b|escalate|gate-live-data"
+assert_rule "improve-stable-gate-failed"          "IMP3b|escalate|gate-live-data"
+assert_rule "improve-stable-gate-absent"          "IMP3b|escalate|gate-live-data"
 assert_rule "decommission-pending"          "DEC1|escalate|gate-decommission"
 assert_rule "decommission-approved"         "DEC2|dispatch|decommission-executor"
 assert_rule "decommission-rejected"         "DEC3|update|return-to-monitor"
 
-# ── Fallback-coverage subset — 6 legacy bold-markdown fixtures, unmodified ─────
+# ── Fallback-coverage subset — 7 legacy bold-markdown fixtures (one,
+# build-complete-gate-legacy-bold, is asserted in the BF block above), unmodified ─
 assert_rule "discovery-pending-legacy-bold" "D1|escalate|gate-1"
 assert_rule "design-pending-legacy-bold"    "DS1|escalate|gate-2"
 assert_rule "mvp-pending-gate-legacy-bold"  "MVP1|escalate|gate-3"
