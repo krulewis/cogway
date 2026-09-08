@@ -1,0 +1,14 @@
+# Normalise to LF on check-in everywhere. Without this, a contributor with
+# core.autocrlf=true can commit `#!/usr/bin/env bash\r`, and the router dies with
+# "bad interpreter" for everyone else.
+* text=auto eol=lf
+
+# These files are the exception: they encode CRLF bytes deliberately, to prove the
+# table counters strip \r before testing whether a row is a markdown separator.
+# Normalising them would not fail a test — it would silently convert them into
+# duplicates of their LF twins and stop testing anything. The assert_crlf checks in
+# route-initiative-test.sh are the belt to this file's braces.
+ops/tests/fixtures/exp-extend-1-crlf/00-discovery-spec.md                        -text
+ops/tests/fixtures/exp-extend-1-crlf/01-design-sprint.md                         -text
+ops/tests/fixtures/exp-extend-1-crlf/02-experiment/experiment-report.md          -text
+ops/tests/fixtures/build-complete-crlf-empty-metrics/03-feature/feature-record.md -text

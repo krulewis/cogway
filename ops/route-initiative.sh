@@ -57,12 +57,19 @@ field() {
 # EMPTY metrics table satisfied BF1's populated-metrics guard and sent the
 # initiative straight to monitor with no metrics at all. Fixtures:
 # build-complete-spaced-separator-{empty,populated}.
+#
+# The strip of a trailing \r must come first: a CRLF file's separator ends in \r,
+# which is none of `-`, `:`, pipe or space, so without it the separator fails the
+# separator test and counts as a data row — the same empty-table bypass, reopened
+# for anyone whose editor writes CRLF. field() has always done tr -d '\r'; these
+# counters never did. Fixtures: build-complete-crlf-empty-metrics, exp-extend-1-crlf.
 count_entries() {
     local file="$1" key="$2"
     local heading
     heading=$(echo "$key" | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')
     awk -v heading="$heading" \
-        '$0 ~ "^## " heading {f=1;header=0;next} \
+        '{sub(/\r$/,"")} \
+         $0 ~ "^## " heading {f=1;header=0;next} \
          f && /^## /{exit} \
          f && /^\|/ && $0 !~ /^\|[-|: \t]*$/{if(header){c++}else{header=1}} \
          END{print c+0}' \
@@ -112,7 +119,8 @@ improvement_mini_sprint_status=""
     # a spaced `| --- |` separator counted as an extension, so ONE extension read as
     # two and EXP4's inconclusive gate fired a cycle early, cutting an experiment
     # short instead of extending it. Fixture: exp-extend-1-spaced-separator.
-    exp_extensions_count=$(awk '/^\*\*Extensions:\*\*/ || /^##[[:space:]]+Extensions[[:space:]]*$/{f=1;header=0;next} \
+    exp_extensions_count=$(awk '{sub(/\r$/,"")} \
+        /^\*\*Extensions:\*\*/ || /^##[[:space:]]+Extensions[[:space:]]*$/{f=1;header=0;next} \
         f && /^\|/ && $0 !~ /^\|[-|: \t]*$/{if(header){c++}else{header=1}} \
         f && /^[^|]/{exit} \
         END{print c+0}' "$EXPERIMENT_REPORT" 2>/dev/null || echo 0)
