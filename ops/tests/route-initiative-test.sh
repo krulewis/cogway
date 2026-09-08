@@ -112,6 +112,12 @@ assert_rule "build-complete-gate-absent"         "BF1b|escalate|gate-live-data"
 assert_rule "build-complete-gate-claim-no-rows"  "BF1b|escalate|gate-live-data"
 assert_rule "build-complete-gate-failed"         "BF1b|escalate|gate-live-data"
 assert_rule "build-complete-gate-legacy-bold"    "BF1|update|begin-monitor"
+# CRLF deliverable with a header+separator evidence table and ZERO data rows.
+# The separator test must strip \r before deciding, or the separator counts as a
+# data row and an EMPTY evidence table satisfies the gate — reopening, for CRLF
+# files, the exact hole the gate exists to close. field() already stripped \r;
+# the table counters did not.
+assert_rule "build-complete-gate-crlf-no-rows"   "BF1b|escalate|gate-live-data"
 # Markdown separator rows must never count as data rows, in either spelling.
 # `|---|` was already skipped; the spaced form `| --- |` (what Prettier and most
 # formatters emit) was counted as a row, so a feature record with EMPTY metrics

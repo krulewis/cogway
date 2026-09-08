@@ -3,12 +3,14 @@
 # "bad interpreter" for everyone else.
 * text=auto eol=lf
 
-# These files are the exception: they encode CRLF bytes deliberately, to prove the
-# table counters strip \r before testing whether a row is a markdown separator.
-# Normalising them would not fail a test — it would silently convert them into
-# duplicates of their LF twins and stop testing anything. The assert_crlf checks in
-# route-initiative-test.sh are the belt to this file's braces.
+# These files are the exception: they encode CRLF bytes deliberately, to
+# prove the table counters strip \r before testing whether a row is a markdown
+# separator. Normalising them would not fail a test — it would silently convert
+# them into duplicates of their LF twins and stop testing anything. The runtime
+# CR assertions in the test scripts are the belt to this file's braces.
 ops/tests/fixtures/exp-extend-1-crlf/00-discovery-spec.md                        -text
 ops/tests/fixtures/exp-extend-1-crlf/01-design-sprint.md                         -text
 ops/tests/fixtures/exp-extend-1-crlf/02-experiment/experiment-report.md          -text
 ops/tests/fixtures/build-complete-crlf-empty-metrics/03-feature/feature-record.md -text
+ops/tests/fixtures/build-complete-gate-crlf-no-rows/03-feature/feature-record.md  -text
+ops/tests/fixtures-lint/feature-record-crlf-no-rows/feature-record.md             -text

@@ -151,10 +151,10 @@ improvement_live_data_rows=0
     # (the "## Live Data Validation" evidence table). field-map-consistency-test.sh's
     # EXPECTED_TABLE tracks field() keys only — baseline_metrics is absent from it for
     # the same reason. This is intentional, not an omission to fix (see R5 in the
-    # architecture decision). count_entries()'s heading match (below) is an unanchored
-    # prefix — "## Live Data Validation Evidence" would also match "Live Data
-    # Validation" — harmless today (no such heading exists) but noted here so a future
-    # second "## Live Data *" heading is understood to alias (Low Finding 16).
+    # architecture decision). count_entries()'s heading match is an unanchored
+    # prefix, so a future "## Live Data Validation Evidence" heading would alias onto
+    # this one. Harmless today because no such heading exists; noted so it is a known
+    # constraint rather than a surprise.
     live_data_validation=$(field "$FEATURE_RECORD" "live_data_validation")
     live_data_rows=$(count_entries "$FEATURE_RECORD" "live_data_validation")
 }
@@ -208,7 +208,7 @@ _no_improvement=0
 # Both clauses are independently load-bearing and both are covered by a dedicated
 # fixture that isolates it: build-complete-gate-claim-no-rows (scalar valid, zero rows)
 # proves the row-count clause; build-complete-gate-failed (scalar invalid/failed, ONE
-# real row) proves the scalar clause — see 00-test-first-work.md, High Finding 1.
+# real row) proves the scalar clause.
 _ldv_ok=0
 { [ "$live_data_validation" = "validated" ] || [ "$live_data_validation" = "not_applicable" ]; } \
   && [ "${live_data_rows:-0}" -gt 0 ] && _ldv_ok=1

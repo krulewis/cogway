@@ -66,6 +66,13 @@ assert_exit "$FIXTURES_LINT/not-gated/README.md" 0
 # *-signal.md basename dispatch
 assert_exit_and_contains "$FIXTURES_LINT/signal-valid/2026-01-01-signal.md" 0 "recommendation = stable"
 
+# `failed` with an empty evidence table must LINT CLEAN. Only a passing claim
+# (validated / not_applicable) needs evidence: `failed` escalates at BF1b/IMP3b
+# whatever the table holds, so demanding rows for it would block a valid record
+# for no routing benefit. Guards the narrowing of that check — without this, the
+# condition could be widened back to "any non-empty value" and nothing would fail.
+assert_exit "$FIXTURES_LINT/feature-record-failed-no-rows/feature-record.md" 0
+
 # improvement-reports directory-based dispatch (recommendation-gated, mini_* optional)
 assert_exit_and_contains "$FIXTURES_LINT/improvement-reports/2026-01-01-report.md" 0 "recommendation = continue_improve"
 

@@ -45,7 +45,7 @@ count_lines() { grep -cE "^\*\*${2}:\*\*|^${2}:" "$1" 2>/dev/null; }
 # character-for-character against ops/route-initiative.sh as of commit 1456dc1, which
 # fixed a spaced-separator-row miscount bug there — see
 # docs/bugs/build-status-complete-written-before-live-data-gate.md for unrelated context
-# on that same file's known hazards, and 00-test-first-work.md's
+# on that same file's known hazards, and the test suite's
 # feature-record-spaced-separator fixture for the mutation this exact regex closes).
 # Counts data rows under a "## <Title Case>" heading derived from a snake_case key,
 # skipping the markdown separator row regardless of spacing (`|---|` or `| --- |`).
@@ -60,7 +60,8 @@ count_entries() {
   local heading
   heading=$(echo "$key" | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')
   awk -v heading="$heading" \
-      '$0 ~ "^## " heading {f=1;header=0;next} \
+      '{sub(/\r$/,"")} \
+       $0 ~ "^## " heading {f=1;header=0;next} \
        f && /^## /{exit} \
        f && /^\|/ && $0 !~ /^\|[-|: \t]*$/{if(header){c++}else{header=1}} \
        END{print c+0}' \
@@ -124,7 +125,10 @@ done
 # to a passing value with zero rows, the router will hit BF1b/IMP3b even though this
 # lint would otherwise report PASS — this check exists to catch that drift at write time.
 _ldv_val=$(field "$FILE" "live_data_validation")
-if [ -n "$_ldv_val" ]; then
+# Only a PASSING claim needs evidence. `failed` escalates at BF1b/IMP3b whatever the
+# table holds, so demanding rows for it would block a valid record for no routing
+# benefit — and would contradict the message below.
+if [ "$_ldv_val" = "validated" ] || [ "$_ldv_val" = "not_applicable" ]; then
   _ldv_rows=$(count_entries "$FILE" "live_data_validation")
   if [ "${_ldv_rows:-0}" -eq 0 ]; then
     echo "  FAIL  live_data_validation = '$_ldv_val' — no rows found under '## Live Data Validation'. Both 'validated' and 'not_applicable' require at least one row (for not_applicable, write a single '| (none) | — | — | — | <what you scanned, naming the PR> |' row)."
