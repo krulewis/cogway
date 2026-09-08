@@ -73,6 +73,13 @@ assert_exit_and_contains "$FIXTURES_LINT/signal-valid/2026-01-01-signal.md" 0 "r
 # condition could be widened back to "any non-empty value" and nothing would fail.
 assert_exit "$FIXTURES_LINT/feature-record-failed-no-rows/feature-record.md" 0
 
+# An improvement report missing `live_data_validation` entirely must FAIL. This is
+# the only assertion that proves the field is REQUIRED on this deliverable: the
+# positive fixtures pass their OK line from the evidence-table block, which is
+# independent of `specs`, so without this the spec could be deleted from the
+# improvement-reports branch and nothing would go red.
+assert_exit "$FIXTURES_LINT/improvement-reports/2026-06-02-missing-ldv.md" 1
+
 # improvement-reports directory-based dispatch (recommendation-gated, mini_* optional)
 assert_exit_and_contains "$FIXTURES_LINT/improvement-reports/2026-01-01-report.md" 0 "recommendation = continue_improve"
 
