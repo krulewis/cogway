@@ -38,6 +38,18 @@
 
 Full checklist (4 checks, shared across all build phases): `ops/rules/build-common.md`. Build:Feature is as exposed to this failure class as the experiment phases are — a feature that ships a scheduled job, capture script or export has a pipeline whose first real run is still its first real run. Run all 4 checks after the PR review loop closes clean, before `playwright-qa` / `docs-updater` / `functional-review-writer`.
 
+**Recording the outcome:** write `live_data_validation: validated | not_applicable |
+failed` plus a `## Live Data Validation` table row (see `build-common.md`) into
+`03-feature/feature-record.md` before this run ends. The router returns
+`BF1b|escalate|gate-live-data` — not `BF1` — until this is recorded, even once
+`build_status: complete` and the baseline/threshold tables are populated.
+
+**Known ordering hazard:** `build_status: complete` is written after task 15's PR review
+loop closes, opening a window (before this gate runs) where the next router call returns
+`BF1b|escalate|gate-live-data` — correct, not a mistake, but procedurally routine within
+that window. Full analysis, options considered, and decision status:
+`docs/bugs/build-status-complete-written-before-live-data-gate.md`.
+
 ---
 
 ## Human-in-the-Loop Blockers (Build:Feature)

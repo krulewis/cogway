@@ -38,6 +38,9 @@ For each metric in the spec, verify its capture method is fully automated (git d
 
 Full checklist (4 checks, shared across all build phases): `ops/rules/build-common.md`. Trigger point for this phase: after the PR review loop and `security-reviewer` both close clean, and **before the orchestrator records a `window_start_date` / advances the initiative to `monitor`**, run all 4 checks for every metric in the spec. If any check fails, the window does not open — fix and re-verify first.
 
+This gate is prose-enforced only here — no router field or rule exists for
+Build:Experiment (see `build-common.md`'s "Recording the outcome" subsection for why).
+
 ---
 
 ## Human-in-the-Loop Blockers (Build:Experiment)

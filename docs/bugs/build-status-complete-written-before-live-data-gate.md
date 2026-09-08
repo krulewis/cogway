@@ -63,3 +63,14 @@ the same change. Options 1 and 2 are a separate, small initiative.
 Which of options 1 and 2 to take, and whether the semantic change to `build_status` warrants
 a schema version bump (nothing in `route-initiative.sh` reads `version`, so a bump would be
 for audit legibility only).
+
+## Referenced from
+
+- `ops/rules/orchestrator.md`'s `build_status` and `live_data_validation` section (states
+  both the Build:Feature and Improve escalation windows, with task numbers, and links here
+  for the full analysis)
+- `ops/rules/build-feature.md`'s Live-Data Validation Gate section
+- `ops/rules/improve.md`'s Live-Data Validation Gate section (added by the live-data-gate
+  initiative; Improve's window — tasks 1 through 8 — is wider than Build:Feature's and is
+  noted at the point of reference, not here, since this doc's Options/Decision-so-far
+  sections were written against the Build:Feature case specifically)
